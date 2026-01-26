@@ -84,7 +84,7 @@ void mt_shutdown(void);
  *
  * Memory returned by this function must be released using mt_free().
  */
-void *mt_malloc(size_t byteNum, const char *file, int line);
+void *mt_malloc(size_t byte_num, const char *file, int line);
 
 #define MT_MALLOC(n) mt_malloc((n), __FILE__, __LINE__)
 
