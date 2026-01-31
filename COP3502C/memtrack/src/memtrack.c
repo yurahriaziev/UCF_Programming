@@ -97,3 +97,39 @@ void *mt_malloc(size_t byte_num, const char *file, int line) {
 
     return ptr;
 }
+
+void mt_free(void *ptr, const char *file, int line) {
+    if (ptr == NULL) {
+        return;
+    }
+
+    if (!tracker_initialized) {
+        fprintf(stderr, "Error | Memory tracker has not been initialized.\n");
+        error_count += 1;
+        return;
+    }
+
+    size_t found_index = record_count;
+    for (size_t i=0; i<record_count; i++) {
+        if (records[i].ptr == ptr) {
+            found_index = i;
+            break;
+        }
+    }
+
+    if (found_index == record_count) {
+        fprintf(stderr, "Error | File [%s] Line %d | Invalid free, pointer not found.\n", file, line);
+        error_count += 1;
+        return;
+    }
+
+    if (records[found_index].is_active == 0) {
+        fprintf(stderr, "Error | File [%s] Line %d | Double free detected.\n", file, line);
+        error_count += 1;
+        return;
+    }
+
+    free(records[found_index].ptr);
+    records[found_index].is_active = 0;
+    return;
+}
