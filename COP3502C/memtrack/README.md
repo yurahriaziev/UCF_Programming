@@ -17,6 +17,13 @@ This project is designed for learning and debugging — not as a production allo
 
 ~~~c
 mt_init();
+
+// example in void main()
+int main(void) {
+    mt_init();
+
+    ...
+}
 ~~~
 
 2) Use the macros instead of standard allocation functions:
