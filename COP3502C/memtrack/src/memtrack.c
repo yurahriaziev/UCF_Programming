@@ -183,3 +183,43 @@ void *mt_realloc(void *ptr, size_t byte_num, const char *file, int line) {
     records[found_index].line = line;
     return new_ptr;
 }
+
+void mt_report() {
+    if (!tracker_initialized) {
+        fprintf(stderr, "Warning | Memory tracker has not been initialized.\n");
+        return;
+    }
+
+    size_t total_allocs = 0;
+    size_t total_bytes = 0;
+    for (size_t i=0; i<record_count; i++) {
+        if (records[i].is_active) {
+            total_allocs += 1;
+            total_bytes += records[i].size;
+        }
+    }
+
+    fprintf(stderr, "===== Memory Tracker Report =====\n");
+    fprintf(stderr, "Total allocations recorded: %zu\n", record_count);
+    fprintf(stderr, "Active allocations: %zu\n", total_allocs);
+    fprintf(stderr, "Active bytes: %zu\n", total_bytes);
+    fprintf(stderr, "Errors detected: %zu\n", error_count);
+    fprintf(stderr, "=================================\n");
+
+    if (total_allocs > 0) {
+        fprintf(stderr, "Active allocation details:\n");
+
+        for (size_t i = 0; i < record_count; i++) {
+            if (records[i].is_active) {
+                fprintf(stderr,
+                        "  [%p] %zu bytes allocated at %s:%d\n",
+                        (void *)records[i].ptr,
+                        records[i].size,
+                        records[i].file,
+                        records[i].line);
+            }
+        }
+    } else {
+        fprintf(stderr, "No active allocations (no leaks detected).\n");
+    }
+}
