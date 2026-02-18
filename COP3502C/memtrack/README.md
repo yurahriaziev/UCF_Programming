@@ -11,8 +11,6 @@ This project is designed for learning and debugging — not as a production allo
 
 ---
 
----
-
 ## How to Use
 
 1) Initialize the tracker:
