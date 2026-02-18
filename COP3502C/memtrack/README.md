@@ -36,6 +36,19 @@ mt_shutdown();
 ~~~
 
 This prints a memory report and releases internal tracking memory.
+Sample output
+
+~~~bash
+Error | File [tests/realloc_test.c] Line 89 | Realloc of a freed pointer detected.
+Error | File [tests/realloc_test.c] Line 107 | Realloc of a freed pointer detected.
+===== Memory Tracker Report =====
+Total allocations recorded: 2
+Active allocations: 0
+Active bytes: 0
+Errors detected: 2
+=================================
+No active allocations (no leaks detected).
+~~~
 
 ---
 
