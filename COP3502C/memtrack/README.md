@@ -1,4 +1,4 @@
-# MemTrack
+e# MemTrack
 
 ## About
 
@@ -36,6 +36,7 @@ mt_shutdown();
 ~~~
 
 This prints a memory report and releases internal tracking memory.
+
 Sample output
 
 ~~~bash
