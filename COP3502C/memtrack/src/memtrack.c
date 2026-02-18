@@ -111,20 +111,15 @@ void mt_free(void *ptr, const char *file, int line) {
 
     size_t found_index = record_count;
     for (size_t i=0; i<record_count; i++) {
-        if (records[i].ptr == ptr) {
+        if (records[i].ptr == ptr && records[i].is_active) {
             found_index = i;
             break;
         }
     }
 
+    
     if (found_index == record_count) {
-        fprintf(stderr, "Error | File [%s] Line %d | Invalid free, pointer not found.\n", file, line);
-        error_count += 1;
-        return;
-    }
-
-    if (records[found_index].is_active == 0) {
-        fprintf(stderr, "Error | File [%s] Line %d | Double free detected.\n", file, line);
+        fprintf(stderr, "Error | File [%s] Line %d | Invalid free, pointer not found or double free.\n", file, line);
         error_count += 1;
         return;
     }
