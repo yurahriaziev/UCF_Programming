@@ -223,3 +223,17 @@ void mt_report() {
         fprintf(stderr, "No active allocations (no leaks detected).\n");
     }
 }
+
+void mt_shutdown() {
+    if (!tracker_initialized) {
+        fprintf(stderr, "Warning | Memory tracker has not been initialized.\n");
+        return;
+    }
+
+    mt_report();
+    free(records);
+    records = NULL;
+    record_count = 0;
+    record_capacity = 0;
+    tracker_initialized = 0;
+}
