@@ -133,3 +133,53 @@ void mt_free(void *ptr, const char *file, int line) {
     records[found_index].is_active = 0;
     return;
 }
+
+void *mt_realloc(void *ptr, size_t byte_num, const char *file, int line) {
+    if (ptr == NULL) {
+        return mt_malloc(byte_num, file, line);
+    }
+
+    if (byte_num == 0) {
+        mt_free(ptr, file, line);
+        return NULL;
+    }
+
+    if (!tracker_initialized) {
+        fprintf(stderr, "Error | Memory tracker has not been initialized.\n");
+        error_count += 1;
+        return NULL;
+    }
+
+    size_t found_index = record_count;
+    for (size_t i=0; i<record_count; i++) {
+        if (records[i].ptr == ptr) {
+            found_index = i;
+            break;
+        }
+    }
+
+    if (found_index == record_count) {
+        fprintf(stderr, "Error | File [%s] Line %d | Invalid realloc, pointer not found.\n", file, line);
+        error_count += 1;
+        return NULL;
+    }
+
+    if (records[found_index].is_active == 0) {
+        fprintf(stderr, "Error | File [%s] Line %d | Realloc of a freed pointer detected.\n", file, line);
+        error_count += 1;
+        return NULL;
+    }
+
+    void *new_ptr = realloc(ptr, byte_num);
+    if (new_ptr == NULL) {
+        fprintf(stderr, "Error | File [%s] Line %d | Realloc failed.\n", file, line);
+        error_count += 1;
+        return NULL;
+    }
+
+    records[found_index].ptr = new_ptr;
+    records[found_index].size = byte_num;
+    records[found_index].file = file;
+    records[found_index].line = line;
+    return new_ptr;
+}

@@ -124,7 +124,7 @@ void mt_free(void *ptr, const char *file, int line);
  * On failure, this function prints an error message to stderr and returns NULL.
  * In this case, the original ptr remains valid and tracked.
  */
-void *mt_realloc(void *ptr, size_t byteNum, const char *file, int line);
+void *mt_realloc(void *ptr, size_t byte_num, const char *file, int line);
 
 #define MT_REALLOC(p, b) mt_realloc((p), (b), __FILE__, __LINE__)
 
