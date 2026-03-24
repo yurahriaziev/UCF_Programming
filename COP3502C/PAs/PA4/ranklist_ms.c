@@ -28,3 +28,8 @@ typedef struct Cat {
 int compareTo(Cat *ptrC1, Cat *ptrC2, int key);
 void mergeSort(Cat **list, int n, int key);
 void mergeSortRec(Cat **list, int low, int high, int key);
+void merge(Cat **list, int low, int mid, int high, int key);
+void insertionSort(Cat **list, int low, int high, int key);
+Cat **readCats(int n);
+void printRanks(Cat **list, int n, int key);
+void freeCats(Cat **list, int n);
