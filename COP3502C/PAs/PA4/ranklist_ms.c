@@ -87,21 +87,22 @@ Cat **readCats(int n) {
 // printRanks: function that will print each cat in the given print format
 void printRanks(Cat **list, int n, int key) {
     if (list == NULL) {
-        return NULL;
+        return;
     }
 
+    printf("%s Ranklist\n", TRAITS[key]);
     for (int i=0; i<n; i++) {
         printf("%d. %-15s %d\n", i+1, list[i]->name, list[i]->scores[key]);
     }
 }
 
-void main() {
+int main(void) {
     int n;
 
-    scanf("%d", n);
-    Cat **list = readCats(&n);
+    scanf("%d", &n);
+    Cat **list = readCats(n);
 
-    printRanks(list, &n, 0);
+    printRanks(list, n, 0);
 
     return 0;
 }
