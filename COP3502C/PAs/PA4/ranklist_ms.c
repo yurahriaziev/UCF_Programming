@@ -49,3 +49,47 @@ int compareTo(Cat *ptrC1, Cat *ptrC2, int key) {
 
     return strcmp(ptrC1->name, ptrC2->name);
 }
+
+// readCats: function that will create a pointer to a list of Cat pointers
+// - returns a list of pointers of size n for the amount of cats
+Cat **readCats(int n) {
+    Cat **list = malloc(n * sizeof(Cat *));
+
+    for (int i=0; i<n; i++) {
+        Cat *newCat = malloc(sizeof(Cat));
+
+        char tempName[MAXSIZE+1];
+        int cuteScore;
+        int fluffScore;
+        int agileScore;
+        int friendlyScore;
+        int smartScore;
+        int lazyScore;
+
+        scanf("%s %d %d %d %d %d %d", tempName, &cuteScore, &fluffScore, &agileScore, &friendlyScore, &smartScore, &lazyScore);
+
+        newCat->name = malloc((strlen(tempName) + 1) * sizeof(char));
+        strcpy(newCat->name, tempName);
+        newCat->scores[0] = cuteScore;
+        newCat->scores[1] = fluffScore;
+        newCat->scores[2] = agileScore;
+        newCat->scores[3] = friendlyScore;
+        newCat->scores[4] = smartScore;
+        newCat->scores[5] = lazyScore;
+        newCat->scores[6] = cuteScore + fluffScore + agileScore + friendlyScore + smartScore + lazyScore;
+
+        list[i] = newCat;
+    }
+
+    return list;
+}
+
+
+void main() {
+    int n;
+
+    scanf("%d", n);
+    Cat **list = readCats(&n);
+
+    return 0;
+}
