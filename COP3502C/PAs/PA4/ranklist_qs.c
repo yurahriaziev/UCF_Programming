@@ -61,6 +61,13 @@ void freeCats(Cat **list, int n) {
     free(list);
 }
 
+// swap: function that will swap the two cat pointers
+void swap(Cat *catA, Cat *catB) {
+    Cat t = *catA;
+    *catA = *catB;
+    *catB = t;
+}
+
 int main(void) {
     int n, key;
 
