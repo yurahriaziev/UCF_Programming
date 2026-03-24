@@ -110,7 +110,8 @@ void freeCats(Cat **list, int n) {
     free(list);
 }
 
-// insertionSort: function that will use compareTo function to check if current cat's score is higher than next ones, if so flip
+// insertionSort: function that will use compareTo function to check if current cat's score is higher than next ones
+// if so, shift elements and insert the item in the correct position
 void insertionSort(Cat **list, int low, int high, int key) {
     int i, j;
     Cat *item;
@@ -129,12 +130,92 @@ void insertionSort(Cat **list, int low, int high, int key) {
     }
 }
 
+// merge: function that will merge two subarrays of list
+// first subarray is list[low...mid], second subarray is list[mid+1...high]
+void merge(Cat **list, int low, int mid, int high, int key) {
+    int i, j, k;
+    int n1 = mid - low + 1;
+    int n2 = high - mid;
+
+    Cat **L = malloc(n1 * sizeof(Cat *));
+    Cat **R = malloc(n2 * sizeof(Cat *));
+
+    for (i=0; i<n1; i++) {
+        L[i] = list[low + i];
+    }
+    for (j=0; j<n2; j++) {
+        R[j] = list[mid + 1 + j];
+    }
+    
+
+    i = 0;
+    j = 0;
+    k = low;
+    while (i < n1 && j < n2) {
+        if (compareTo(L[i], R[j], key)) {
+            list[k] = L[i];
+            i++;
+        } else {
+            list[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        list[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        list[k] = R[j];
+        j++;
+        k++;
+    }
+
+    free(L);
+    free(R);
+}
+
+// mergeSortRec: function that will recursevely sort left and right subarrays by calling merge()
+void mergeSortRec(Cat **list, int low, int high, int key) {
+    if ((high - low + 1) >= BASECASESIZE) {
+        insertionSort(list, low, high, key);
+        return;
+    }
+
+    if (low < high) {
+        int mid = (low+high) / 2;
+
+        mergeSortRec(list, low, mid, key);
+        mergeSortRec(list, mid+1, high, key);
+
+        merge(list, low, mid, high, key);
+    }
+}
+
+// mergeSort: wrapper function that will call mergeSortRec
+void mergeSort(Cat **list, int n, int key) {
+    if (list == NULL) {
+        return;
+    }
+
+    if (n <= 1) {
+        return;
+    }
+
+    mergeSortRec(list, 0, n-1, key);
+}
+
 int main(void) {
     int n, key;
 
     scanf("%d", &n);
     Cat **list = readCats(n);
     scanf("%d", &key);
+
+    mergeSort(list, n, key);
 
     printRanks(list, n, key);
     freeCats(list, n);
