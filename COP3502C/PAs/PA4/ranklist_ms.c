@@ -96,13 +96,29 @@ void printRanks(Cat **list, int n, int key) {
     }
 }
 
+// freeCats: function that will free all cat structs and the cat list too
+void freeCats(Cat **list, int n) {
+    if (list == NULL) {
+        return;
+    }
+
+    for (int i=0; i<n; i++) {
+        free(list[i]->name);
+        free(list[i]);
+    }
+
+    free(list);
+}
+
 int main(void) {
-    int n;
+    int n, key;
 
     scanf("%d", &n);
     Cat **list = readCats(n);
+    scanf("%d", &key);
 
-    printRanks(list, n, 0);
+    printRanks(list, n, key);
+    freeCats(list, n);
 
     return 0;
 }
