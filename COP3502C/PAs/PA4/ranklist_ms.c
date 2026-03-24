@@ -152,7 +152,7 @@ void merge(Cat **list, int low, int mid, int high, int key) {
     j = 0;
     k = low;
     while (i < n1 && j < n2) {
-        if (compareTo(L[i], R[j], key)) {
+        if (compareTo(L[i], R[j], key) <= 0) {
             list[k] = L[i];
             i++;
         } else {
@@ -178,9 +178,10 @@ void merge(Cat **list, int low, int mid, int high, int key) {
     free(R);
 }
 
-// mergeSortRec: function that will recursevely sort left and right subarrays by calling merge()
+// mergeSortRec: function that will recursevely sort left and right subarrays by calling itself
+// then merge by calling merge()
 void mergeSortRec(Cat **list, int low, int high, int key) {
-    if ((high - low + 1) >= BASECASESIZE) {
+    if ((high - low + 1) <= BASECASESIZE) {
         insertionSort(list, low, high, key);
         return;
     }
@@ -208,6 +209,7 @@ void mergeSort(Cat **list, int n, int key) {
     mergeSortRec(list, 0, n-1, key);
 }
 
+// main function that will read input and call merge sort
 int main(void) {
     int n, key;
 
