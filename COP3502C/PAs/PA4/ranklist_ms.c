@@ -110,6 +110,25 @@ void freeCats(Cat **list, int n) {
     free(list);
 }
 
+// insertionSort: function that will use compareTo function to check if current cat's score is higher than next ones, if so flip
+void insertionSort(Cat **list, int low, int high, int key) {
+    int i, j;
+    Cat *item;
+
+    for (i=low+1; i<=high; i++) {
+        item = list[i];
+
+        for (j=i-1; j>=low; j--) {
+            if (compareTo(list[j], item, key) > 0) {
+                list[j+1] = list[j];
+            } else {
+                break;
+            }
+        }
+        list[j+1] = item;
+    }
+}
+
 int main(void) {
     int n, key;
 
