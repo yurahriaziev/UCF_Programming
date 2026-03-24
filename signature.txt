@@ -1,0 +1,2 @@
+/*              COP 3502C PA ###
+This program is written by: Yurii Hriaziev */
