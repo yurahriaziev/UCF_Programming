@@ -32,7 +32,7 @@ void printRanks(Cat **list, int n, int key);
 void freeCats(Cat **list, int n);
 void quickSort(Cat **list, int n, int key);
 void quickSortRec(Cat **list, int low, int high, int key);
-void swap(Cat *catA, Cat *catB);
+void swap(Cat **catA, Cat **catB);
 int partition(Cat **list, int low, int high, int key);
 
 // printRanks: function that will print each cat in the given print format
@@ -62,11 +62,13 @@ void freeCats(Cat **list, int n) {
 }
 
 // swap: function that will swap the two cat pointers
-void swap(Cat *catA, Cat *catB) {
-    Cat t = *catA;
+void swap(Cat **catA, Cat **catB) {
+    Cat *t = *catA;
     *catA = *catB;
     *catB = t;
 }
+
+
 
 int main(void) {
     int n, key;
