@@ -1,0 +1,54 @@
+QuickSort algo is unstable -> does not keep order of duplicate items
+- In worst case quick sort will run slower than merge sort in cases where the array get split into extremely uneven partitions. Worst case happens when
+    there are N nested recursive calls on arrays of size n, n-1, n-2 and so on.
+    Where as marge sort, it is guaranteed the array will split into roughly two equal partitions every time
+- When quick sort runs in place, it means the algo does not need to allocate any extra space for sorting. Most of the work occurs within the original array whereas
+    merge sort allocates subarrays during its process.
+
+
+----Finding Big O memory
+
+typedef struct Node Node;
+    struct Node {
+    Node ** children;
+    int val;
+};
+Node * createNode(int N) {
+    Node * res = (Node *) malloc(sizeof(Node));
+    if (N == 0) return res;
+    res->children = (Node **) malloc(sizeof(Node*) * N);
+    res->children[0] = createNode(N / 2);
+    res->val = 0;
+    for (int i = 0; i < N; i++)
+    res->val += i;
+    return res;
+}
+
+T(N) = T(N / 2) + O(N)
+T(1) = O(1)
+
+1.
+T(n) = T(n/2) + n
+2.
+T(n) = T(n/4) + n/2 + n
+3.
+T(n) = T(n/8) + n/4 + n/2 + n
+4.
+T(n) = T(n/16) + n/8 + n/4 + n/2 + n
+k-th
+T(n) = T(n/2^k) + { Summation from i=0 to k-1 (n/2^i) } = n(1/1-(1/2)) [Given]
+
+
+Side notes:
+T(n/2) = T(n/4) + n/2
+T(n/4) = T(n/8) + n/4
+T(n/8) = T(n/16) + n/8
+
+Get to base case
+n/2^k = 1
+2^k = N
+k = log_2 (n)
+
+T(n) = T(1) + n[ 1 / (1/2) ]
+     = n [ 1 / (1/2) ] = 2n
+     = O(n)
