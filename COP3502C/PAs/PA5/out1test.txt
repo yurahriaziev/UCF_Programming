@@ -12,3 +12,5 @@ Poa 72 3
 Polter 85 6
 Anthony Tabby 91
 Kevin Maine 33
+friendly: Anthony Poa Polter
+lazy: Anthony Caesar Kevin

@@ -41,6 +41,8 @@ BST_Node *parent(BST_Node *root, BST_Node *node);
 BST_Node *delete(BST_Node *root, char *name);
 void updateSubtreeSizes(BST_Node *root);
 BST_Node *findKthSmallest(BST_Node *root, int k);
+char **filterByTrait(BST_Node *root, int traitIndex, int traitValue, int *resultSize);
+void collectCatsThatMatch(BST_Node *root, int traitIndex, int traitValue, char **result, int *resultSize);
 
 // createCat: function that will create a new cat with given name, breed, charm and traits
 Cat *createCat() {
@@ -299,6 +301,7 @@ BST_Node *delete(BST_Node *root, char *name) {
     return root;
 }
 
+// updateSubtreeSizes: function to update all node's subtree size variables after deletion happens
 void updateSubtreeSizes(BST_Node *root) {
     if (root == NULL) {
         return;
@@ -340,6 +343,41 @@ BST_Node *findKthSmallest(BST_Node *root, int k) {
     return findKthSmallest(root->right, k - leftSize - 1);
 }
 
+void collectCatsThatMatch(BST_Node *root, int traitIndex, int traitValue, char **result, int *resultSize) {
+    if (root != NULL) {
+        collectCatsThatMatch(root->left, traitIndex, traitValue, result, resultSize);
+        
+        if (root->cat->traits[traitIndex] == traitValue) {
+            result[*resultSize] = malloc((strlen(root->cat->name) + 1) * sizeof(char));
+            strcpy(result[*resultSize], root->cat->name);
+            (*resultSize)+=1;
+        }
+        
+        collectCatsThatMatch(root->right, traitIndex, traitValue, result, resultSize);
+    }
+}
+
+// filterByTrait: function 
+char **filterByTrait(BST_Node *root, int traitIndex, int traitValue, int *resultSize) {
+    char **result;
+
+    *resultSize = 0;
+    if (root == NULL) {
+        return NULL;
+    }
+
+    result = malloc(root->subtree_size * sizeof(char *));
+    collectCatsThatMatch(root, traitIndex, traitValue, result, resultSize);
+
+    if (*resultSize == 0) {
+        free(result);
+        return NULL;
+    }
+
+    result = realloc(result, (*resultSize) * sizeof(char *));
+    return result;
+}
+
 // main: main function to run everything
 int main() {
     BST_Node *root = NULL;
@@ -371,6 +409,27 @@ int main() {
                 printf("NO SMALLEST ELEMENT FOUND\n");
             } else {
                 printf("%s %s %d\n", kthSmallest->cat->name, kthSmallest->cat->breed, kthSmallest->cat->charm);
+            }
+        } else if (q == 4) {
+            int traitIndex, traitValue;
+            int resultSize;
+            char **result;
+
+            scanf("%d %d", &traitIndex, &traitValue);
+
+            result = filterByTrait(root, traitIndex, traitValue, &resultSize);
+
+            if (result == NULL) {
+                printf("NONE FOUND\n");
+            } else {
+                printf("%s:", TRAIT_NAMES[traitIndex]);
+                for (int j=0; j<resultSize; j++) {
+                    printf(" %s", result[j]);
+                    free(result[j]);
+                }
+
+                printf("\n");
+                free(result);
             }
         } else if (q == 6) {
             if (root == NULL) {
