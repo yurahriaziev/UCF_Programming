@@ -33,6 +33,13 @@ int countTraitsForCat(Cat *cat);
 BST_Node *insert(BST_Node *root, BST_Node *newNode, int depth);
 void freeCat(Cat *cat);
 void inorderPrint(BST_Node *root);
+BST_Node *minVal(BST_Node *root);
+int isLeaf(BST_Node *node);
+int hasOnlyLeftChild(BST_Node *node);
+int hasOnlyRightChild(BST_Node *node);
+BST_Node *parent(BST_Node *root, BST_Node *node);
+BST_Node *delete(BST_Node *root, char *name);
+void updateSubtreeSizes(BST_Node *root);
 
 // createCat: function that will create a new cat with given name, breed, charm and traits
 Cat *createCat() {
@@ -164,6 +171,151 @@ void inorderPrint(BST_Node *root) {
     }
 }
 
+// deletion helper function start
+BST_Node *minVal(BST_Node *root) {
+    if (root->left == NULL) {
+        return root;
+    } else {
+        return minVal(root->left);
+    }
+}
+
+int isLeaf(BST_Node *node) {
+    return (node->left == NULL && node->right == NULL);
+}
+
+int hasOnlyLeftChild(BST_Node *node) {
+    return (node->left != NULL && node->right == NULL);
+}
+
+int hasOnlyRightChild(BST_Node *node) {
+    return (node->left == NULL && node->right != NULL);
+}
+
+BST_Node *parent(BST_Node *root, BST_Node *node) {
+    if (root == NULL || root == node) {
+        return NULL;
+    }
+
+    if (root->left == node || root->right == node) {
+        return root;
+    }
+
+    if (strcmp(node->cat->name, root->cat->name) < 0) {
+        return parent(root->left, node);
+    } else {
+        return parent(root->right, node);
+    }
+}
+// end deletion helper function
+
+// delete: function that will delete the node with the given name and update the tree, will handle 3 different delete cases
+BST_Node *delete(BST_Node *root, char *name) {
+    BST_Node *delNode, *new_del_node, *save_node;
+    delNode = findNode(root, name);
+    Cat *save_cat;
+    
+    if (delNode == NULL) {
+        return root;
+    }
+
+    BST_Node *par = parent(root, delNode);
+
+    if (isLeaf(delNode)) {
+        if (par == NULL) {
+            freeCat(delNode->cat);
+            free(delNode);
+            return NULL;
+        }
+
+        if (strcmp(name, par->cat->name) < 0) {
+            freeCat(par->left->cat);
+            free(par->left);
+            par->left = NULL;
+        } else {
+            freeCat(par->right->cat);
+            free(par->right);
+            par->right = NULL;
+        }
+
+        return root;
+    }
+
+    if (hasOnlyLeftChild(delNode)) {
+        if (par == NULL) {
+            save_node = delNode->left;
+            freeCat(delNode->cat);
+            free(delNode);
+            return save_node;
+        }
+
+        if (strcmp(name, par->cat->name) < 0) {
+            save_node = par->left;
+            par->left = par->left->left;
+            freeCat(save_node->cat);
+            free(save_node);
+        } else {
+            save_node = par->right;
+            par->right = par->right->left;
+            freeCat(save_node->cat);
+            free(save_node);
+        }
+
+        return root;
+    }
+
+    if (hasOnlyRightChild(delNode)) {
+        if (par == NULL) {
+            save_node = delNode->right;
+            freeCat(delNode->cat);
+            free(delNode);
+            return save_node;
+        }
+
+        if (strcmp(name, par->cat->name) < 0) {
+            save_node = par->left;
+            par->left = par->left->right;
+            freeCat(save_node->cat);
+            free(save_node);
+        } else {
+            save_node = par->right;
+            par->right = par->right->right;
+            freeCat(save_node->cat);
+            free(save_node);
+        }
+
+        return root;
+    }
+
+    new_del_node = minVal(delNode->right);
+    save_cat = delNode->cat;
+    
+    delNode->cat = new_del_node->cat;
+    new_del_node->cat = save_cat;
+
+    delNode->right = delete(delNode->right, name);
+
+    return root;
+}
+
+void updateSubtreeSizes(BST_Node *root) {
+    if (root == NULL) {
+        return;
+    }
+
+    updateSubtreeSizes(root->left);
+    updateSubtreeSizes(root->right);
+
+    root->subtree_size = 1;
+
+    if (root->left != NULL) {
+        root->subtree_size += root->left->subtree_size;
+    }
+    if (root->right != NULL) {
+        root->subtree_size += root->right->subtree_size;
+    }
+}
+
 // main: main function to run everything
 int main() {
     BST_Node *root = NULL;
@@ -179,6 +331,12 @@ int main() {
             Cat *newCat = createCat();
             BST_Node *newNode = createBSTNode(newCat);
             root = insert(root, newNode, 0);
+        } else if (q == 2) {
+            char name[MAX_NAME+1];
+            scanf("%s", name);
+            root = delete(root, name);
+            updateSubtreeSizes(root);
+            printf("Deletion Complete\n");
         } else if (q == 6) {
             if (root == NULL) {
                 printf("EMPTY\n");
