@@ -32,6 +32,7 @@ BST_Node *findNode(BST_Node *root, char *name);
 int countTraitsForCat(Cat *cat);
 BST_Node *insert(BST_Node *root, BST_Node *newNode, int depth);
 void freeCat(Cat *cat);
+void inorderPrint(BST_Node *root);
 
 // createCat: function that will create a new cat with given name, breed, charm and traits
 Cat *createCat() {
@@ -104,7 +105,9 @@ int countTraitsForCat(Cat *cat) {
     return count;
 }
 
-// insert: 
+// insert: function that will insert a new node to the bst
+// - checks for identical cat names, keeps the one with more active traits
+// - adds a new node keeping track of the depth
 BST_Node *insert(BST_Node *root, BST_Node *newNode, int depth) {
     if (root == NULL) {
         printf("Insert: %d\n", depth);
@@ -145,12 +148,23 @@ BST_Node *insert(BST_Node *root, BST_Node *newNode, int depth) {
     return root;
 }
 
+// freeCat: helper function to free a cat
 void freeCat(Cat *cat) {
     free(cat->name);
     free(cat->breed);
     free(cat);
 }
 
+// inorderPrint: function that will print the entire BST in order, alphabetical order
+void inorderPrint(BST_Node *root) {
+    if (root != NULL) {
+        inorderPrint(root->left);
+        printf("%s %d %d\n", root->cat->name, root->cat->charm, root->subtree_size);
+        inorderPrint(root->right);
+    }
+}
+
+// main: main function to run everything
 int main() {
     BST_Node *root = NULL;
     int num_ops;
@@ -165,6 +179,12 @@ int main() {
             Cat *newCat = createCat();
             BST_Node *newNode = createBSTNode(newCat);
             root = insert(root, newNode, 0);
+        } else if (q == 6) {
+            if (root == NULL) {
+                printf("EMPTY\n");
+            } else {
+                inorderPrint(root);
+            }
         }
     }
 

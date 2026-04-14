@@ -4,3 +4,9 @@ Insert: 2
 Insert: 3
 Insert: 2
 Insert: 4
+Anthony 91 1
+Caesar 47 5
+Hana 68 1
+Kevin 33 2
+Poa 72 3
+Polter 85 6
