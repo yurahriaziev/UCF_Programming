@@ -40,6 +40,7 @@ int hasOnlyRightChild(BST_Node *node);
 BST_Node *parent(BST_Node *root, BST_Node *node);
 BST_Node *delete(BST_Node *root, char *name);
 void updateSubtreeSizes(BST_Node *root);
+BST_Node *findKthSmallest(BST_Node *root, int k);
 
 // createCat: function that will create a new cat with given name, breed, charm and traits
 Cat *createCat() {
@@ -316,6 +317,29 @@ void updateSubtreeSizes(BST_Node *root) {
     }
 }
 
+BST_Node *findKthSmallest(BST_Node *root, int k) {
+    int leftSize;
+
+    if (root == NULL) {
+        return NULL;
+    }
+
+    leftSize = 0;
+    if (root->left != NULL) {
+        leftSize = root->left->subtree_size;
+    }
+
+    if (k == leftSize + 1) {
+        return root;
+    }
+
+    if (k <= leftSize) {
+        return findKthSmallest(root->left, k);
+    }
+
+    return findKthSmallest(root->right, k - leftSize - 1);
+}
+
 // main: main function to run everything
 int main() {
     BST_Node *root = NULL;
@@ -337,6 +361,17 @@ int main() {
             root = delete(root, name);
             updateSubtreeSizes(root);
             printf("Deletion Complete\n");
+        } else if (q == 3) {
+            int k;
+            scanf("%d", &k);
+
+            BST_Node *kthSmallest = findKthSmallest(root, k);
+
+            if (kthSmallest == NULL) {
+                printf("NO SMALLEST ELEMENT FOUND\n");
+            } else {
+                printf("%s %s %d\n", kthSmallest->cat->name, kthSmallest->cat->breed, kthSmallest->cat->charm);
+            }
         } else if (q == 6) {
             if (root == NULL) {
                 printf("EMPTY\n");
