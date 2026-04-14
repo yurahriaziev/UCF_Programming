@@ -28,6 +28,8 @@ const char *TRAIT_NAMES[NUM_TRAITS] = {"friendly", "grumpy", "playful", "lazy", 
 // function prototypes
 Cat *createCat();
 BST_Node *createBSTNode(Cat *cat);
+BST_Node *findNode(BST_Node *root, char *name);
+int countTraitsForCat(Cat *cat);
 
 // createCat: function that will create a new cat with given name, breed, charm and traits
 Cat *createCat() {
@@ -54,6 +56,7 @@ Cat *createCat() {
     return newCat;
 }
 
+// createBSTNode: function that creates a new BST Node for a given cat
 BST_Node *createBSTNode(Cat *cat) {
     BST_Node *newNode = malloc(sizeof(BST_Node));
 
@@ -63,4 +66,40 @@ BST_Node *createBSTNode(Cat *cat) {
     newNode->subtree_size = 1;
 
     return newNode;
+}
+
+BST_Node *findNode(BST_Node *root, char *name) {
+    if (root != NULL) {
+        if (strcmp(root->cat->name, name) == 0) {
+            return root;
+        }
+
+        if (strcmp(name, root->cat->name) < 0) {
+            return findNode(root->left, name);
+        } else {
+            return findNode(root->right, name);
+        }
+    }
+
+    return NULL;
+}
+
+int countTraitsForCat(Cat *cat) {
+    int count = 0;
+
+    if (cat == NULL) {
+        return 0;
+    }
+
+    for (int i=0; i<NUM_TRAITS; i++) {
+        if (cat->traits[i] == 1) {
+            count+=1;
+        }
+    }
+
+    return count;
+}
+
+int main() {
+    return 0;
 }
