@@ -1,12 +1,6 @@
-q = 1
 Insert: 0
-q = 1
 Insert: 1
-q = 1
 Insert: 2
-q = 1
 Insert: 3
-q = 1
 Insert: 2
-q = 1
 Insert: 4
