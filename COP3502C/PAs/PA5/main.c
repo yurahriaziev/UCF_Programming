@@ -43,6 +43,8 @@ void updateSubtreeSizes(BST_Node *root);
 BST_Node *findKthSmallest(BST_Node *root, int k);
 char **filterByTrait(BST_Node *root, int traitIndex, int traitValue, int *resultSize);
 void collectCatsThatMatch(BST_Node *root, int traitIndex, int traitValue, char **result, int *resultSize);
+void collectCatsToRemove(BST_Node *root, int traitIndex, int traitValue, char **result, int *resultSize);
+BST_Node *removeByTrait(BST_Node *root, int traitIndex, int traitValuem, int *removedCount);
 
 // createCat: function that will create a new cat with given name, breed, charm and traits
 Cat *createCat() {
@@ -208,6 +210,24 @@ BST_Node *parent(BST_Node *root, BST_Node *node) {
         return parent(root->left, node);
     } else {
         return parent(root->right, node);
+    }
+}
+
+void decrementPath(BST_Node *root, char *name) {
+    if (root == NULL) {
+        return;
+    }
+
+    root->subtree_size -= 1;
+
+    if (strcmp(name, root->cat->name) == 0) {
+        return;
+    }
+
+    if (strcmp(name, root->cat->name) < 0) {
+        decrementPath(root->left, name);
+    } else {
+        decrementPath(root->right, name);
     }
 }
 // end deletion helper function
@@ -378,6 +398,58 @@ char **filterByTrait(BST_Node *root, int traitIndex, int traitValue, int *result
     return result;
 }
 
+void collectCatsToRemove(BST_Node *root, int traitIndex, int traitValue, char **result, int *resultSize) {
+    if (root != NULL) {
+        collectCatsToRemove(root->left, traitIndex, traitValue, result, resultSize);
+
+        if (root->cat->traits[traitIndex] == traitValue) {
+            result[*resultSize] = malloc((strlen(root->cat->name) + 1) * sizeof(char));
+            strcpy(result[*resultSize], root->cat->name);
+            (*resultSize)+=1;
+        }
+
+        collectCatsToRemove(root->right, traitIndex, traitValue, result, resultSize);
+    }
+}
+
+BST_Node *removeByTrait(BST_Node *root, int traitIndex, int traitValue, int *removedCount) {
+    char **catsToRemove;
+    int resultSize = 0;
+
+    *removedCount = 0;
+
+    if (root == NULL) {
+        return NULL;
+    }
+
+    catsToRemove = malloc(root->subtree_size * sizeof(char *));
+    collectCatsToRemove(root, traitIndex, traitValue, catsToRemove, &resultSize);
+
+    if (resultSize == 0) {
+        free(catsToRemove);
+        return root;
+    }
+
+    for (int i=0; i<resultSize; i++) {
+        root = delete(root, catsToRemove[i]);
+        updateSubtreeSizes(root);
+        free(catsToRemove[i]);
+        (*removedCount)+=1;
+    }
+
+    free(catsToRemove);
+    return root;
+}
+
+void freeBST(BST_Node *root) {
+    if (root != NULL) {
+        freeBST(root->left);
+        freeBST(root->right);
+        freeCat(root->cat);
+        free(root);
+    }
+}
+
 // main: main function to run everything
 int main() {
     BST_Node *root = NULL;
@@ -431,6 +503,18 @@ int main() {
                 printf("\n");
                 free(result);
             }
+        } else if (q == 5) {
+            int traitIndex, traitValue;
+            int removedCount;
+
+            scanf("%d %d", &traitIndex, &traitValue);
+
+            root = removeByTrait(root, traitIndex, traitValue, &removedCount);
+            if (removedCount == 0) {
+                printf("NONE REMOVED\n");
+            } else {
+                printf("%d\n", removedCount);
+            }
         } else if (q == 6) {
             if (root == NULL) {
                 printf("EMPTY\n");
@@ -440,5 +524,6 @@ int main() {
         }
     }
 
+    freeBST(root);
     return 0;
 }
