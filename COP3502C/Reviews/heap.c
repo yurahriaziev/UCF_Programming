@@ -16,7 +16,7 @@ typedef struct heap_struct {
 
 heap_struct *init_heap();
 heap_struct *init_heap_from_array(int *values, int len);
-void heapify(heap_struct *heap);
+void heapify(heap_struct *heap); // runtime: O(n)
 
 void percolate_down(heap_struct *heap, int index);
 void percolate_up(heap_struct *heap, int index);
@@ -36,7 +36,7 @@ int remove_min(heap_struct *heap);
 int print_heap(heap_struct *heap);
 void free_heap(heap_struct *heap);
 
-void sort(int values[], int length);
+void sort(int values[], int length); // runtime: O(n log n)
 
 heap_struct *init_heap() {
     struct heap_struct *h;
@@ -132,7 +132,9 @@ void percolate_down(heap_struct *heap, int index) {
     }
 }
 
-
+void heapify(heap_struct *heap) {
+    
+}
 
 int main() {
     int item;
