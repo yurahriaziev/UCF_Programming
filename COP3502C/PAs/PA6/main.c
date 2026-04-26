@@ -230,12 +230,12 @@ void cmd_mode(Shelter *S, const char *mode_str) {
     if (strcmp(mode_str, "ADOPTION") == 0) {
         S->mode = MODE_ADOPTION;
         S->heap.mode = MODE_ADOPTION;
-        // recompute_all_keys_and_build(S);
+        recompute_all_keys_and_build(S);
         printf("Mode set to ADOPTION. Rebuilding priorities...\n");
     } else if (strcmp(mode_str, "TRIAGE") == 0) {
         S->mode = MODE_TRIAGE;
         S->heap.mode = MODE_TRIAGE;
-        // recompute_all_keys_and_build(S);
+        recompute_all_keys_and_build(S);
         printf("Mode set to TRIAGE. Rebuilding priorities...\n");
     }
 }
