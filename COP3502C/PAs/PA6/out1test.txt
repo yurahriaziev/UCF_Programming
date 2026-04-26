@@ -1,3 +1,5 @@
 Mode set to ADOPTION. Rebuilding priorities...
 Added Coco.
 Added Hana.
+Updated Coco: QUARANTINE=1.
+Updated Hana: QUARANTINE=1.

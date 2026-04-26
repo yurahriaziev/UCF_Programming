@@ -269,6 +269,64 @@ void cmd_add (Shelter *S, const char *name, const char *breed, int age, int frie
     printf("Added %s.\n", name);
 }
 
+void cmd_update(Shelter *S, const char *name, const char *field, int new_value) {
+    int index = find_cat_index(&S->heap, name);
+
+    if (index == -1) {
+        printf("Cat %s not found.\n", name);
+        return;
+    }
+
+    Cat *c = S->heap.arr[index];
+    if (strcmp(field, "QUARANTINE") == 0) {
+        c->quarantine = new_value;
+
+        percolateUp(&S->heap, index);
+        percolateDown(&S->heap, index);
+        
+        printf("Updated %s: QUARANTINE=%d.\n", name, new_value);
+        return;
+    } else if (strcmp(field, "AGE") == 0) {
+        c->age = new_value;
+        if (S->mode == MODE_ADOPTION) {
+            c->key = compute_adoption_key(c, S);
+        } else {
+            c->key = compute_triage_key(c);
+        }
+
+        percolateUp(&S->heap, index);
+        percolateDown(&S->heap, index);
+
+        printf("Updated %s: AGE=%d. Priority adjusted.\n", name, new_value);
+    } else if (strcmp(field, "FRIEND") == 0) {
+        c->friendliness = new_value;
+        if (S->mode == MODE_ADOPTION) {
+            c->key = compute_adoption_key(c, S);
+        } else {
+            c->key = compute_triage_key(c);
+        }
+
+        percolateUp(&S->heap, index);
+        percolateDown(&S->heap, index);
+
+        printf("Updated %s: FRIEND=%d. Priority adjusted.\n", name, new_value);
+    } else if (strcmp(field, "HEALTH") == 0) {
+        c->health = new_value;
+        if (S->mode == MODE_ADOPTION) {
+            c->key = compute_adoption_key(c, S);
+        } else {
+            c->key = compute_triage_key(c);
+        }
+
+        percolateUp(&S->heap, index);
+        percolateDown(&S->heap, index);
+
+        printf("Updated %s: HEALTH=%d. Priority adjusted.\n", name, new_value);
+    } else {
+        printf("Unknown field %s.", field);
+    }
+}
+
 int main() {
     Shelter s;
     s.mode = MODE_ADOPTION;
@@ -300,6 +358,13 @@ int main() {
 
             scanf("%s %s %d %d %d", name, breed, &age, &friendliness, &health);
             cmd_add(&s, name, breed, age, friendliness, health);
+        } else if (strcmp(cmd, "UPDATE") == 0) {
+            char name[MAX_NAME + 1];
+            char field[11];
+            int value;
+
+            scanf("%s %s %d", name, field, &value);
+            cmd_update(&s, name, field, value);
         }
     }
 
