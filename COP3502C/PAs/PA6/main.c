@@ -83,6 +83,8 @@ void cmd_featured(Shelter *S, const char *breed, double alpha);
 /* Non-destructive: print top k according to active mode.
 Recommended: copy heap array into a temp heap and extract k from the copy. */
 void cmd_print (const Shelter *S, int k);
+// free cat
+void freeCat(Cat *c);
 
 int find_cat_index(const CatHeap *heap, const char *name) {
     if (heap == NULL) {
@@ -216,6 +218,12 @@ Cat *removeTop(CatHeap *heap) {
     return NULL;
 }
 
+void freeCat(Cat *c) {
+    free(c->name);
+    free(c->breed);
+    free(c);
+}
+
 void cmd_mode(Shelter *S, const char *mode_str) {
     if (strcmp(mode_str, "ADOPTION") == 0) {
         S->mode = MODE_ADOPTION;
@@ -228,6 +236,37 @@ void cmd_mode(Shelter *S, const char *mode_str) {
         // recompute_all_keys_and_build(S);
         printf("Mode set to TRIAGE. Rebuilding priorities...\n");
     }
+}
+
+void cmd_add (Shelter *S, const char *name, const char *breed, int age, int friendl, int health) {
+    Cat *newCat;
+
+    if (find_cat_index(&S->heap, name) != -1) {
+        printf("Name %s already exists.\n", name);
+        return;
+    }
+
+    newCat = malloc(sizeof(Cat));
+    newCat->name = malloc((strlen(name) + 1) * sizeof(char));
+    strcpy(newCat->name, name);
+    newCat->breed = malloc((strlen(breed) + 1) * sizeof(char));
+    strcpy(newCat->breed, breed);
+    newCat->age = age;
+    newCat->friendliness = friendl;
+    newCat->health = health;
+    newCat->arrival_id = S->next_arrival_id;
+    S->next_arrival_id++;
+
+    newCat->quarantine = 0;
+
+    if (S->mode == MODE_ADOPTION) {
+        newCat->key = compute_adoption_key(newCat, S);
+    } else {
+        newCat->key = compute_triage_key(newCat);
+    }
+
+    insert(&S->heap, newCat);
+    printf("Added %s.\n", name);
 }
 
 int main() {
@@ -252,6 +291,15 @@ int main() {
             char mode_str[10];
             scanf("%s", mode_str);
             cmd_mode(&s, mode_str);
+        } else if (strcmp(cmd, "ADD") == 0) {
+            char name[MAX_NAME + 1];
+            char breed[MAX_NAME + 1];
+            int age;
+            int friendliness;
+            int health;
+
+            scanf("%s %s %d %d %d", name, breed, &age, &friendliness, &health);
+            cmd_add(&s, name, breed, age, friendliness, health);
         }
     }
 
