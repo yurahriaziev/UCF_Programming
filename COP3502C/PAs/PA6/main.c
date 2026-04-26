@@ -76,8 +76,32 @@ void cmd_featured(Shelter *S, const char *breed, double alpha);
 Recommended: copy heap array into a temp heap and extract k from the copy. */
 void cmd_print (const Shelter *S, int k);
 
+// cmd_mode: function that will
+void cmd_mode(Shelter *S, const char *mode_str) {
+    if (strcmp(mode_str, "ADOPTION") == 0) {
+        S->mode = MODE_ADOPTION;
+        S->heap.mode = MODE_ADOPTION;
+        // recompute_all_keys_and_build(S);
+        printf("Mode set to ADOPTION. Rebuilding priorities...\n");
+    } else if (strcmp(mode_str, "TRIAGE") == 0) {
+        S->mode = MODE_TRIAGE;
+        S->heap.mode = MODE_TRIAGE;
+        // recompute_all_keys_and_build(S);
+        printf("Mode set to TRIAGE. Rebuilding priorities...\n");
+    }
+}
+
 int main() {
     Shelter s;
+    s.mode = MODE_ADOPTION;
+    s.featured_breed = NULL;
+    s.alpha = 1.0;
+    s.next_arrival_id = 1;
+    s.heap.arr = NULL;
+    s.heap.size = 0;
+    s.heap.capacity = 0;
+    s.heap.mode = MODE_ADOPTION;
+
     int q;
 
     scanf("%d", &q);
@@ -85,7 +109,11 @@ int main() {
     for (int i=0; i<q; i++) {
         char cmd[10];
         scanf("%s", cmd);
-
+        if (strcmp(cmd, "MODE") == 0) {
+            char mode_str[10];
+            scanf("%s", mode_str);
+            cmd_mode(&s, mode_str);
+        }
     }
 
     return 0;
