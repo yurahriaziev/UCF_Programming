@@ -332,31 +332,36 @@ void cmd_serve(Shelter *S) {
         printf("No cats available.\n");
         return;
     }
-
-    Cat *temp[1000];
-    int tempSize = 0;
-    Cat *served = NULL;
-
-    while (S->heap.size > 0) {
-        Cat *top = removeTop(&S->heap);
-
-        if (top->quarantine == 0) {
-            served = top;
-            break;
-        } else {
-            temp[tempSize++] = top;
+    if (S->mode == MODE_ADOPTION) {
+        Cat *temp[1000];
+        int tempSize = 0;
+        Cat *served = NULL;
+    
+        while (S->heap.size > 0) {
+            Cat *top = removeTop(&S->heap);
+    
+            if (top->quarantine == 0) {
+                served = top;
+                break;
+            } else {
+                temp[tempSize++] = top;
+            }
         }
-    }
-
-    if (served == NULL) {
-        printf("No adoptable cats available.\n");
+    
+        if (served == NULL) {
+            printf("No adoptable cats available.\n");
+        } else {
+            printf("Serve now: %s (key=%.2f, name=%s, breed=%s, age=%d, friend=%d, health=%d)\n", served->name, served->key, served->name, served->breed, served->age, served->friendliness, served->health);
+            freeCat(served);
+        }
+    
+        for (int i=0; i<tempSize; i++) {
+            insert(&S->heap, temp[i]);
+        }
     } else {
-        printf("Serve now: %s (key=%.2f, name=%s, breed=%s, age=%d, friend=%d, health=%d)\n", served->name, served->key, served->name, served->breed, served->age, served->friendliness, served->health);
-        freeCat(served);
-    }
-
-    for (int i=0; i<tempSize; i++) {
-        insert(&S->heap, temp[i]);
+        Cat *top = removeTop(&S->heap);
+        printf("Serve now: %s (key=%.2f, name=%s, breed=%s, age=%d, friend=%d, health=%d)\n", top->name, top->key, top->name, top->breed, top->age, top->friendliness, top->health);
+        freeCat(top);
     }
 }
 
