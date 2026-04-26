@@ -51,6 +51,8 @@ void recompute_all_keys_and_build(Shelter *S);
 int compareTo(const Cat *a, const Cat *b, Mode mode);
 // swaps two cats in the heap
 void swap(CatHeap *heap, int index1, int index2);
+void percolateDown(CatHeap *heap, int index);
+void percolateUp(CatHeap *heap, int index);
 
 /* ========== Command Handlers (I/O-Free Logic) ========== */
 /* Allocates a new Cat, initializes fields, computes key for active mode,
@@ -147,6 +149,35 @@ void swap(CatHeap *heap, int index1, int index2) {
     Cat *temp = heap->arr[index1];
     heap->arr[index1] = heap->arr[index2];
     heap->arr[index2] = temp;
+}
+
+void percolateUp(CatHeap *heap, int index) {
+    if (index > 1) {
+        if (compareTo(heap->arr[index], heap->arr[index/2], heap->mode)) {
+            swap(heap, index, index/2);
+            percolateUp(heap, index/2);
+        }
+    }
+}
+
+void percolateDown(CatHeap *heap, int index) {
+    int best;
+
+    if ((2*index+1) <= heap->size) {
+        best = 2*index;
+        if (compareTo(heap->arr[2*index+1], heap->arr[2*index], heap->mode)) {
+            best = 2*index+1;
+        }
+
+        if (compareTo(heap->arr[best], heap->arr[index], heap->mode)) {
+            swap(heap, index, best);
+            percolateDown(heap, best);
+        }
+    } else if (heap->size == 2*index) {
+        if (compareTo(heap->arr[2*index], heap->arr[index], heap->mode)) {
+            swap(heap, index, 2*index);
+        }
+    }
 }
 
 void cmd_mode(Shelter *S, const char *mode_str) {
