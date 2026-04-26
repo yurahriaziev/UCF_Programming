@@ -85,6 +85,8 @@ Recommended: copy heap array into a temp heap and extract k from the copy. */
 void cmd_print (const Shelter *S, int k);
 // free cat
 void freeCat(Cat *c);
+// free shelter of all cats and shelter itself
+void freeShelter(Shelter *S);
 
 int find_cat_index(const CatHeap *heap, const char *name) {
     if (heap == NULL) {
@@ -365,6 +367,130 @@ void cmd_serve(Shelter *S) {
     }
 }
 
+void recompute_all_keys_and_build(Shelter *S) {
+    if (S == NULL) {
+        return;
+    }
+
+    for (int i=1; i<=S->heap.size; i++) {
+        if (S->mode == MODE_ADOPTION) {
+            S->heap.arr[i]->key = compute_adoption_key(S->heap.arr[i], S);
+        } else {
+            S->heap.arr[i]->key = compute_triage_key(S->heap.arr[i]);
+        }
+    }
+
+    for (int i=S->heap.size/2; i>0; i--) {
+        percolateDown(&S->heap, i);
+    }
+}
+
+void cmd_featured(Shelter *S, const char *breed, double alpha) {
+    if (strcmp(breed, "NONE") == 0) {
+        if (S->featured_breed != NULL) {
+            free(S->featured_breed);
+        }
+
+        S->featured_breed = NULL;
+        S->alpha = 1.0;
+
+        recompute_all_keys_and_build(S);
+
+        printf("Featured breed cleared. Rebuilding priorities...\n");
+    } else {
+        if (S->featured_breed != NULL) {
+            free(S->featured_breed);
+        }
+
+        S->featured_breed = malloc((strlen(breed) + 1) * sizeof(char));
+        strcpy(S->featured_breed, breed);
+
+        S->alpha = alpha;
+
+        recompute_all_keys_and_build(S);
+
+        printf("Featured breed set to %s with alpha=%.2f. Rebuilding priorities...\n", breed, alpha);
+    }
+}
+
+void cmd_peek (const Shelter *S) {
+    if (S->heap.size == 0) {
+        printf("No cats available.\n");
+        return;
+    }
+
+    Cat *c = S->heap.arr[1];
+
+    if (S->mode == MODE_ADOPTION) {
+        printf("Top[ADOPTION]: [ADOPTION] (key=%.2f, name=%s, breed=%s, age=%d, friend=%d, health=%d)\n", c->key, c->name, c->breed, c->age, c->friendliness, c->health);
+    } else {
+        printf("Top[TRIAGE]: [TRIAGE] (key=%.2f, name=%s, breed=%s, age=%d, friend=%d, health=%d)\n", c->key, c->name, c->breed, c->age, c->friendliness, c->health);
+    }
+}
+
+void cmd_remove(Shelter *S, const char *name) {
+    int index = find_cat_index(&S->heap, name);
+
+    if (index == -1) {
+        printf("Cat %s not found.\n", name);
+        return;
+    }
+
+    Cat *remCat = S->heap.arr[index];
+    S->heap.arr[index] = S->heap.arr[S->heap.size];
+    S->heap.size--;
+
+    if (index <= S->heap.size) {
+        percolateUp(&S->heap, index);
+        percolateDown(&S->heap, index);
+    }
+
+    freeCat(remCat);
+
+    printf("Removed %s.\n", name);
+}
+
+void cmd_print (const Shelter *S, int k) {
+    if (S->heap.size == 0) {
+        printf("No cats available.\n");
+        return;
+    }
+
+    CatHeap tempHeap;
+    tempHeap.capacity = S->heap.capacity;
+    tempHeap.size = S->heap.size;
+    tempHeap.mode = S->heap.mode;
+    tempHeap.arr = malloc((tempHeap.capacity + 1) * sizeof(Cat *));
+
+    for (int i=1; i<=S->heap.size; i++) {
+        tempHeap.arr[i] = S->heap.arr[i];
+    }
+
+    for (int i=1; i<=k && tempHeap.size > 0; i++) {
+        Cat *c = removeTop(&tempHeap);
+
+        if (S->mode == MODE_ADOPTION) {
+            printf("[%d] %s (key=%.2f, ADOPTION)\n", i, c->name, c->key);
+        } else {
+            printf("[%d] %s (key=%.2f, TRIAGE)\n", i, c->name, c->key);
+        }
+    }
+
+    free(tempHeap.arr);
+}
+
+void freeShelter(Shelter *S) {
+    for (int i=1; i<=S->heap.size; i++) {
+        freeCat(S->heap.arr[i]);
+    }
+
+    free(S->heap.arr);
+
+    if (S->featured_breed != NULL) {
+        free(S->featured_breed);
+    }
+}
+
 int main() {
     Shelter s;
     s.mode = MODE_ADOPTION;
@@ -405,8 +531,27 @@ int main() {
             cmd_update(&s, name, field, value);
         } else if (strcmp(cmd, "SERVE") == 0) {
             cmd_serve(&s);
+        } else if (strcmp(cmd, "FEATURED") == 0) {
+            char breed[MAX_NAME + 1];
+            double alpha;
+
+            scanf("%s %lf", breed, &alpha);
+            cmd_featured(&s, breed, alpha);
+        } else if (strcmp(cmd, "PEEK") == 0) {
+            cmd_peek(&s);
+        } else if (strcmp(cmd, "REMOVE") == 0) {
+            char name[MAX_NAME + 1];
+            scanf("%s", name);
+            cmd_remove(&s, name);
+        } else if (strcmp(cmd, "PRINT") == 0) {
+            int k;
+            scanf("%d", &k);
+            cmd_print(&s, k);
+        } else if (strcmp(cmd, "QUIT") == 0) {
+            break;
         }
     }
 
+    freeShelter(&s);
     return 0;
 }
