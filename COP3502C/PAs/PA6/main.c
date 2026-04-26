@@ -47,6 +47,10 @@ double compute_adoption_key(const Cat *c, const Shelter *S);
 double compute_triage_key(const Cat *c);
 /* Recomputes all keys for the active mode and rebuilds heap in O(n) using bottom-up heapify. */
 void recompute_all_keys_and_build(Shelter *S);
+// compares two cats based on the current mode
+int compareTo(const Cat *a, const Cat *b, Mode mode);
+// swaps two cats in the heap
+void swap(CatHeap *heap, int index1, int index2);
 
 /* ========== Command Handlers (I/O-Free Logic) ========== */
 /* Allocates a new Cat, initializes fields, computes key for active mode,
@@ -109,6 +113,40 @@ int max(int a, int b) {
 }
 double compute_triage_key(const Cat *c) {
     return (100 - c->health)*2.0 + max(0, c->age-12)*1.0 - 0.05*c->friendliness;
+}
+
+int compareTo(const Cat *a, const Cat *b, Mode mode) {
+    if (mode == MODE_ADOPTION) {
+        if (a->key > b->key) {
+            return 1;
+        } else if (a->key < b->key) {
+            return 0;
+        }
+    } else {
+        if (a->key < b->key) {
+            return 1;
+        } else if (a->key > b->key) {
+            return 0;
+        }
+    }
+
+    if (strcmp(a->name, b->name) < 0) {
+        return 1;
+    } else if (strcmp(a->name, b->name) > 0) {
+        return 0;
+    }
+
+    if (a->arrival_id < b->arrival_id) {
+        return 1;
+    }
+
+    return 0;
+}
+
+void swap(CatHeap *heap, int index1, int index2) {
+    Cat *temp = heap->arr[index1];
+    heap->arr[index1] = heap->arr[index2];
+    heap->arr[index2] = temp;
 }
 
 void cmd_mode(Shelter *S, const char *mode_str) {
