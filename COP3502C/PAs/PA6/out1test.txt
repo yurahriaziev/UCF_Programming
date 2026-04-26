@@ -3,3 +3,4 @@ Added Coco.
 Added Hana.
 Updated Coco: QUARANTINE=1.
 Updated Hana: QUARANTINE=1.
+No adoptable cats available.
