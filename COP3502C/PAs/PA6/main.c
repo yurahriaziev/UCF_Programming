@@ -49,10 +49,12 @@ double compute_triage_key(const Cat *c);
 void recompute_all_keys_and_build(Shelter *S);
 // compares two cats based on the current mode
 int compareTo(const Cat *a, const Cat *b, Mode mode);
-// swaps two cats in the heap
+// heap helper functions
 void swap(CatHeap *heap, int index1, int index2);
 void percolateDown(CatHeap *heap, int index);
 void percolateUp(CatHeap *heap, int index);
+int insert(CatHeap *heap, Cat *c);
+Cat *removeTop(CatHeap *heap);
 
 /* ========== Command Handlers (I/O-Free Logic) ========== */
 /* Allocates a new Cat, initializes fields, computes key for active mode,
@@ -178,6 +180,40 @@ void percolateDown(CatHeap *heap, int index) {
             swap(heap, index, 2*index);
         }
     }
+}
+
+int insert(CatHeap *heap, Cat *c) {
+    if (heap->size == heap->capacity) {
+        heap->arr = realloc(heap->arr, (2*heap->capacity+1) * sizeof(Cat *));
+
+        if (heap->arr == NULL) {
+            return 0;
+        }
+
+        heap->capacity *= 2;
+    }
+    heap->size++;
+    heap->arr[heap->size] = c;
+    percolateUp(heap, heap->size);
+
+    return 1;
+}
+
+Cat *removeTop(CatHeap *heap) {
+    Cat *retCat;
+
+    if (heap->size > 0) {
+        retCat = heap->arr[1];
+
+        heap->arr[1] = heap->arr[heap->size];
+        heap->size--;
+
+        percolateDown(heap, 1);
+
+        return retCat;
+    }
+
+    return NULL;
 }
 
 void cmd_mode(Shelter *S, const char *mode_str) {
