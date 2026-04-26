@@ -76,7 +76,41 @@ void cmd_featured(Shelter *S, const char *breed, double alpha);
 Recommended: copy heap array into a temp heap and extract k from the copy. */
 void cmd_print (const Shelter *S, int k);
 
-// cmd_mode: function that will
+int find_cat_index(const CatHeap *heap, const char *name) {
+    if (heap == NULL) {
+        return -1;
+    }
+
+    for (int i=1; i<=heap->size; i++) {
+        if (strcmp(heap->arr[i]->name, name) == 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+double compute_adoption_key(const Cat *c, const Shelter *S) {
+    double base = 1.6 * c->friendliness + 1.1 * c->health - 0.7 * c->age;
+    double mult = 1.0;
+
+    if (S->featured_breed != NULL && strcmp(c->breed, S->featured_breed) == 0) {
+        mult = S->alpha;
+    }
+
+    return base * mult + (-1e-6 * c->arrival_id);
+}
+
+int max(int a, int b) {
+    if (a < b) {
+        return b;
+    }
+    return a;
+}
+double compute_triage_key(const Cat *c) {
+    return (100 - c->health)*2.0 + max(0, c->age-12)*1.0 - 0.05*c->friendliness;
+}
+
 void cmd_mode(Shelter *S, const char *mode_str) {
     if (strcmp(mode_str, "ADOPTION") == 0) {
         S->mode = MODE_ADOPTION;
@@ -97,9 +131,9 @@ int main() {
     s.featured_breed = NULL;
     s.alpha = 1.0;
     s.next_arrival_id = 1;
-    s.heap.arr = NULL;
+    s.heap.capacity = 10;
+    s.heap.arr = malloc((s.heap.capacity + 1) * sizeof(Cat *));
     s.heap.size = 0;
-    s.heap.capacity = 0;
     s.heap.mode = MODE_ADOPTION;
 
     int q;
