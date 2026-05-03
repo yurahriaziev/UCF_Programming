@@ -133,7 +133,9 @@ void percolate_down(heap_struct *heap, int index) {
 }
 
 void heapify(heap_struct *heap) {
-    
+    for (int i=heap->size/2; i>0; i--) {
+        percolate_down(heap, i);
+    }
 }
 
 int main() {

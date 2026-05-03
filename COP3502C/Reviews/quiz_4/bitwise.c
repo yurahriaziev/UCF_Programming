@@ -50,6 +50,14 @@ int sumBits(int n) {
     return (n & 1) + sumBits(n >> 1);
 }
 
+int paintFence(int pattern, int paintLoc[], int paintLen) {
+    int finalFence = 0;
+    for (int i=0; i<paintLen; i++) {
+        finalFence = finalFence | (pattern << (paintLoc[i]));
+    }
+    return finalFence;
+}
+
 int main() {
     int arr[] = {9, 3, 4, 5, 12};
     int n = 5;
