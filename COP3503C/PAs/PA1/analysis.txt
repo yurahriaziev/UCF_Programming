@@ -1,0 +1,9 @@
+When array A in a sorted array, I am using getCandidatePair() function to find a pair of numbers that add up to the given target.
+This function uses two trackers, one starting from the left side and another starting from the right side. They work together to check
+and array item at most once, therefore resulting in O(n) runtime. Since this is a sorted array, if the current sum of left and 
+right trackers is smaller than the target we shift left tracker right by 1. Otherwise we shift right tracker left by 1.
+
+But when the given A array is unsorted, the I use getCandidatePairUnsorted() function to find the pair that adds up to the target.
+My getCandidatePairUnsorted() function runs in O(n) runtime because I am using a HashSet to store seen values. In hashsets, obtaining
+and item and inserting an item is O(1), so going through all the values and seeing if the difference of target - current value has already
+been seen (HashSet has that value) will result in O(n).

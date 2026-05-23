@@ -1,0 +1,4 @@
+Test case#1: Spend 14 points by playing the games with 5 points and 9 points.
+Test case#2: No way you can spend exactly 11 points.
+Test case#3: Spend 16 points by playing the games with 6 points and 10 points.
+Test case#4: Spend 16 points by playing the games with 6 points and 10 points.
