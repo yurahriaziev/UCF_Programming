@@ -60,17 +60,39 @@ public class Main {
         return id;
     }
 
+    public int find_compression(int id) {
+        // check if given id is root aready
+        if (id == parents[id].getID()) {
+            return id;
+        }
+
+        // find id's parent's root
+        int res = find(parents[id].getID());
+
+        // if the res is not an existig parent of current id, make that res the current id's parent
+        if (res != parents[id].getID()) {
+            parents[id].setID(res);
+            parents[res].decHeight();
+        }
+
+        return res;
+    }
+
     public boolean union(int id1, int id2) {
+        // find both roots of given id's
         int root1 = find(id1);
         int root2 = find(id2);
 
+        // check if same root, no need to union
         if (root1 == root2) {
             return false;
         }
 
+        // get heights of each root
         int height1 = parents[root1].getHeight();
         int height2 = parents[root2].getHeight();
 
+        // check if height1 is less then 
         if (height1 < height2) {
             parents[root1].setID(root2);
         } else if (height1 > height2) {
@@ -120,5 +142,9 @@ class pair {
 
     public void incHeight() {
         height++;
+    }
+    
+    public void decHeight() {
+        height--;
     }
 }
