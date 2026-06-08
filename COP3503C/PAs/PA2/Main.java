@@ -42,7 +42,7 @@ public class Main {
             if (findWord(word) == true) {
                 printRes();
             } else {
-                System.out.println(word + " not found!");
+                System.out.println(word + " not found!\n");
             }
         }
 
@@ -76,26 +76,43 @@ public class Main {
         visited[x][y] = true;
         res[x][y] = matrix[x][y];
 
-        // going all four available directions
-        if (findWordUtil(word, index + 1, x, y+1) == true) {
+        // going to different directions
+        if (findWordUtil(word, index + 1, x, y + 1) == true) {
             return true;
         }
 
-        if (findWordUtil(word, index + 1, x+1, y+1) == true) {
+        if (findWordUtil(word, index + 1, x + 1, y) == true) {
             return true;
         }
 
-        if (findWordUtil(word, index + 1, x, y-1) == true) {
+        if (findWordUtil(word, index + 1, x + 1, y + 1) == true) {
             return true;
         }
 
-        if (findWordUtil(word, index + 1, x+1, y-1) == true) {
+        if (findWordUtil(word, index + 1, x + 1, y - 1) == true) {
+            return true;
+        }
+
+        if (findWordUtil(word, index + 1, x, y - 1) == true) {
+            return true;
+        }
+
+        if (findWordUtil(word, index + 1, x - 1, y) == true) {
+            return true;
+        }
+
+        if (findWordUtil(word, index + 1, x - 1, y + 1) == true) {
+            return true;
+        }
+
+        if (findWordUtil(word, index + 1, x - 1, y - 1) == true) {
             return true;
         }
 
         // backtracking part
         visited[x][y] = false;
         res[x][y] = ' ';
+
         return false;
     }
 
@@ -145,5 +162,7 @@ public class Main {
 
             System.out.println("]");
         }
+
+        System.out.println();
     }
 }
