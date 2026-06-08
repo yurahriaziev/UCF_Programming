@@ -1,0 +1,26 @@
+Looking for ABC
+[C, B, A,  ]
+[ ,  ,  ,  ]
+[ ,  ,  ,  ]
+
+Looking for BAOED
+[ , B, A,  ]
+[ ,  , O,  ]
+[ , D, E,  ]
+
+Looking for CNE
+[C,  ,  ,  ]
+[ , N,  ,  ]
+[ ,  , E,  ]
+
+Looking for NEC
+NEC not found!
+
+Looking for NEED
+[ ,  ,  ,  ]
+[ , N,  , D]
+[ ,  , E, E]
+
+Looking for NEEDON
+NEEDON not found!
+

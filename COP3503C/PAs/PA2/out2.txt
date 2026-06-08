@@ -1,0 +1,18 @@
+Looking for mop
+mop not found!
+
+Looking for comp
+[c, o, m, p]
+[ ,  ,  ,  ]
+[ ,  ,  ,  ]
+[ ,  ,  ,  ]
+
+Looking for omo
+omo not found!
+
+Looking for maa
+[ ,  ,  ,  ]
+[a, m,  ,  ]
+[a,  ,  ,  ]
+[ ,  ,  ,  ]
+
