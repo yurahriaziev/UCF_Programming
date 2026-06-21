@@ -1,0 +1,9 @@
+My testing strategy for this assignment was simple. When I coded the disjoint set functions, classse,
+I first created a disjoin set with the given n value from input to make sure my set creation code works.
+Onces that was working I proceeded to capture connection pairs and use the union() method I created in
+my DisjoinSet class to make sure that works. Once I made sure that worked, I finished getting the other
+input parameters, and tested using the two test cases given in the assignment.
+
+Once they both worked, I came up with some very large test cases and validated them using ai to make sure
+those test cases actually made sense. I used ai because it would take me a long time to generate and validate
+the test cases. I used 'java Main < in1.txt' in my terminal to test the large test case. The long test case passed.
