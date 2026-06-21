@@ -1,6 +1,6 @@
-// package COP3503C.PAs.PA3;
+package COP3503C.PAs.PA3;
 
-import java.util.Scanner;
+import java.util.*;
 
 /*              COP 3503C Assignment ##
 This program is written by: Yurii Hriaziev */

@@ -4,6 +4,5 @@ Onces that was working I proceeded to capture connection pairs and use the union
 my DisjoinSet class to make sure that works. Once I made sure that worked, I finished getting the other
 input parameters, and tested using the two test cases given in the assignment.
 
-Once they both worked, I came up with some very large test cases and validated them using ai to make sure
-those test cases actually made sense. I used ai because it would take me a long time to generate and validate
-the test cases. I used 'java Main < in1.txt' in my terminal to test the large test case. The long test case passed.
+Once they both worked, I went into CodeGrade platform, uploaded my code and proceeded to test it on the long
+test cases. I was able to pass them all under all time limits.
