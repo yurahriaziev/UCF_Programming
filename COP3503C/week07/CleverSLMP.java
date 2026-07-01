@@ -10,28 +10,27 @@ public class CleverSLMP {
     }
 
     static void findCommonLinear(int arr1[], int arr2[]) {
-        int i = 0;
-        int j = 0;
-        // flag to see if at the end we have found a match or not
+        int i=0;
+        int j=0;
+
         boolean match = false;
 
-        // run a while loop until both pointers reach the two arrays' lengths
-        while (i < arr1.length && j < arr2.length) {
+        while (i<arr1.length && j<arr2.length) {
             if (arr1[i] < arr2[j]) {
                 i++;
-            } else if (arr1[i] > arr2[j]) {
+            } else if (arr2[j] < arr1[i]) {
                 j++;
             } else {
-                // match found
-                System.out.println("Item: " + arr1[i]);
+                System.out.println("Found match: " + arr1[i]);
                 match = true;
+
                 i++;
                 j++;
             }
         }
 
         if (!match) {
-            System.out.println("No common items");
+            System.out.println("No matches found");
         }
     }
 }

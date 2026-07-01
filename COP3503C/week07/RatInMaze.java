@@ -25,7 +25,7 @@ public class RatInMaze {
     boolean solveMaze(int maze[][]) {
         int sol[][] = new int[N][N];
 
-        if (solveMazeUtil(maze, 0, 0, sol) == false) {
+        if (solveMazeUtil(maze, 0, 0, maze) == false) {
             System.out.println("Solution does not exist");
             return false;
         }
@@ -41,7 +41,7 @@ public class RatInMaze {
             return true;
         }
 
-        if (isSafe(maze, x, y) == true && sol[x][y] != 1) {
+        if (isSafe(maze, x, y) && sol[x][y] != 1) {
             sol[x][y] = 1;
 
             if (solveMazeUtil(maze, x+1, y, sol) == true) {
@@ -55,7 +55,7 @@ public class RatInMaze {
             sol[x][y] = 0;
             return false;
         }
-        
+
         return false;
     }
 
