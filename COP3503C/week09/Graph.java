@@ -56,6 +56,28 @@ public class Graph {
         }
     }
 
+    void BFS2(int s) {
+        boolean[] visited = new boolean[V];
+        LinkedList<Integer> queue = new LinkedList<>();
+
+        visited[s] = true;
+        queue.add(s);
+
+        while (!queue.isEmpty()) {
+            int explore = queue.poll();
+            System.out.println(explore + " ");
+
+            Iterator<Integer> i = adj[explore].listIterator();
+            while (i.hasNext()) {
+                int n = i.next();
+                if (!visited[n]) {
+                    visited[n] = true;
+                    queue.add(n);
+                }
+            }
+        }
+    }
+
     // void 
 
     void DFSUtil(int v, boolean visited[]) {
@@ -80,12 +102,37 @@ public class Graph {
         }
     }
 
+    void DFS2Util(int v, boolean[] visited) {
+        visited[v] = true;
+        System.out.println(v + " ");
+
+        Iterator<Integer> i = adj[v].listIterator();
+        while (i.hasNext()) {
+            int n = i.next();
+
+            while (!visited[n]) {
+                DFS2Util(n, visited);
+            }
+        }
+    }
+
     void DFS() {
         boolean visited[] = new boolean[V];
 
+        // perform dfs on all nodes that are not visited, good for separated graphs
         for (int i=0; i<V; i++) {
             if (!visited[i]) {
                 DFSUtil(i, visited);
+            }
+        }
+    }
+
+    void DFS2() {
+        boolean[] visited = new boolean[V];
+
+        for (int i=0; i<V; i++) {
+            if (!visited[i]) {
+                DFS2Util(i, visited);
             }
         }
     }
