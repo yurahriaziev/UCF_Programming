@@ -1,0 +1,2 @@
+In city: 1
+On the road: 1

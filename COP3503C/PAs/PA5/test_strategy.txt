@@ -1,0 +1,9 @@
+I had two test cases that I tried my code with (test_1.txt, test_2.txt). Both cases were successful
+and provided the correct output based on the input. 
+First test case gave me this output:
+In city: 0
+On the road: 1
+
+And second test case gave me this:
+In city: 1
+On the road: 1
