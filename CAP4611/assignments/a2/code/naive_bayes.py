@@ -29,11 +29,9 @@ class NaiveBayes:
         # Compute the conditional probabilities i.e.
         # p(x_ij=1 | y_i==c) as p_xy[j, c]
         # p(x_ij=0 | y_i==c) as 1 - p_xy[j, c]
-        p_xy = 0.5 * np.ones((d, k))
-        # TODO: replace the above line with the proper code
-
-        raise NotImplementedError()
-
+        p_xy = np.zeros((d, k))
+        for c in range(k):
+            p_xy[:, c] = X[y == c].mean(axis=0)
 
         self.p_y = p_y
         self.p_xy = p_xy
@@ -65,8 +63,18 @@ class NaiveBayesLaplace(NaiveBayes):
         self.beta = beta
 
     def fit(self, X, y):
-        """YOUR CODE FOR Q3.4"""
-        raise NotImplementedError()
+        n, d = X.shape
+        k = self.num_classes
+
+        counts = np.bincount(y, minlength=k)
+        p_y = counts / n
+
+        p_xy = np.zeros((d, k))
+
+        for c in range(k):
+            feature_counts = X[y == c].sum(axis=0)
+
+            p_xy[:, c] = (feature_counts + self.beta) / (counts[c] + 2 * self.beta)
 
 
         self.p_y = p_y

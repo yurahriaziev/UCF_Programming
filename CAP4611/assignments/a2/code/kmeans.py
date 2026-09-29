@@ -32,6 +32,10 @@ class Kmeans:
                     y == kk
                 ):  # don't update the mean if no examples are assigned to it (one of several possible approaches)
                     means[kk] = X[y == kk].mean(axis=0)
+                    
+                    # to see the trend for 5.1.2
+                    current_error = self.error(X, y, means)
+                    print(f"kk {kk}: {current_error}")
 
             changes = np.sum(y != y_old)
             # print('Running K-means, changes in cluster assignment = {}'.format(changes))
@@ -51,6 +55,5 @@ class Kmeans:
         return np.argmin(distance_matrix, axis=1)
 
     def error(self, X, y, means):
-        """YOUR CODE HERE FOR Q5.1"""
-        raise NotImplementedError()
+        return np.sum((X - means[y.astype(int)]) ** 2)
 
