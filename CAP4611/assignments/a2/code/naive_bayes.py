@@ -73,7 +73,6 @@ class NaiveBayesLaplace(NaiveBayes):
 
         for c in range(k):
             feature_counts = X[y == c].sum(axis=0)
-
             p_xy[:, c] = (feature_counts + self.beta) / (counts[c] + 2 * self.beta)
 
 

@@ -54,6 +54,5 @@ class Kmeans:
         distance_matrix[np.isnan(distance_matrix)] = np.inf
         return np.argmin(distance_matrix, axis=1)
 
-    def error(self, X, y, means):
-        return np.sum((X - means[y.astype(int)]) ** 2)
+    
 
