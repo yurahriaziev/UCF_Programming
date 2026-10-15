@@ -517,39 +517,39 @@ int main(int argc, char *argv[]) {
         printf("\nError %d at line %d, column %d: ", error, error_line, error_column);
         switch (error) {
             case 1:
-				printf("invalid character '%c'\n", cur_char);
-				break;
-			case 2:
-				printf("identifier too long '%s'\n", lexeme);
-				break;
-			case 3:
-				printf("number too long '%s'\n", lexeme);
-				break;
-			case 4:
-				printf("':' must be followed by '='\n");
-				break;
-			case 5:
-				printf("'!' must be followed by '='\n");
-				break;
-			case 6:
-				printf("number followed by a letter '%s'\n", lexeme);
-				break;
-			case 7:
-				printf("comment is not closed before end of file\n");
-				break;
-			case 8:
-				printf("'*/' without a matching '/*'\n");
-				break;
-			case 9:
-				printf("'/*' inside a comment\n");
-				break;
-			case 10:
-				printf("byte 0x%02X is not part of this language\n",
-					(unsigned int)cur_char);
-				break;
-			case 11:
-				printf("no tokens in the source program\n");
-				break;
+                printf("invalid character '%c'\n", cur_char);
+                break;
+            case 2:
+                printf("identifier too long '%s'\n", lexeme);
+                break;
+            case 3:
+                printf("number too long '%s'\n", lexeme);
+                break;
+            case 4:
+                printf("':' must be followed by '='\n");
+                break;
+            case 5:
+                printf("'!' must be followed by '='\n");
+                break;
+            case 6:
+                printf("number followed by a letter '%s'\n", lexeme);
+                break;
+            case 7:
+                printf("comment is not closed before end of file\n");
+                break;
+            case 8:
+                printf("'*/' without a matching '/*'\n");
+                break;
+            case 9:
+                printf("'/*' inside a comment\n");
+                break;
+            case 10:
+                printf("byte 0x%02X is not part of this language\n",
+                    (unsigned int)cur_char);
+                break;
+            case 11:
+                printf("no tokens in the source program\n");
+                break;
         }
     }
     
