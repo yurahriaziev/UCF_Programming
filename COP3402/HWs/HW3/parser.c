@@ -1,4 +1,38 @@
+/*
+Homework:
+parser - HW3 PL/0 parser and symbol table
 
+Author(s): Yurii Hriaziev
+
+Language: C only
+
+To Compile:
+  gcc -Wall -Wextra -std=c11 -O2 parser.c -o parser
+
+To Execute (on Eustis):
+  ./lex <input_file> && ./parser
+
+where:
+  <input_file> is the path to a text file holding a PL/0 source program;
+  ./lex writes tokens.txt and nametable.txt, and ./parser reads them from
+  the current directory and takes no arguments
+
+Notes:
+  - Implements the recursive-descent parser and symbol table described in
+    the homework instructions.
+  - Prints four sections to standard output: Name Table, Parse Trace,
+    Symbol Table and Result.
+  - Stops at the first syntax or symbol-table error, reports it with its
+    token number, and exits with status 1.
+  - Exits with status 0 when the whole program is accepted.
+  - Tested on Eustis.
+
+Class: COP 3402 - Systems Software
+
+Instructor: Jie Lin, Ph.D.
+
+Due Date: See Webcourses
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -319,6 +353,267 @@ void mark_symbols(void) {
     }
 }
 
+void parse_const_declaration(void) {
+    get_next_token("const-decl");
+
+    while (1) {
+        if (current_token() != 1) {
+            display_error(2, token_pos);
+        }
+
+        size_t name_index = tokens[token_pos].name_index;
+        get_next_token("const-decl");
+        check_declaration(name_index);
+
+        if (current_token() != 19) {
+            display_error(3, token_pos);
+        }
+        get_next_token("const-decl");
+
+        if (current_token() != 2) {
+            display_error(3, token_pos);
+        }
+
+        int value = atoi(tokens[token_pos].number);
+        get_next_token("const-decl");
+        insert_constant(name_index, value);
+
+        if (current_token() != 15) {
+            break;
+        }
+
+        get_next_token("const-decl");
+    }
+
+    if (current_token() != 16) {
+        display_error(4, token_pos);
+    }
+    get_next_token("const-decl");
+}
+
+// function to parse variable declaration
+void parse_var_declaration(void) {
+    get_next_token("var-decl");
+
+    while (1) {
+        if (current_token() != 1) {
+            display_error(2, token_pos);
+        }
+
+        size_t name_index = tokens[token_pos].name_index;
+        get_next_token("var-decl");
+        check_declaration(name_index);
+        insert_variable(name_index);
+
+        if (current_token() != 15) {
+            break;
+        }
+
+        get_next_token("var-decl");
+    }
+
+    if (current_token() != 16) {
+        display_error(4, token_pos);
+    }
+    get_next_token("var-decl");
+}
+
+void parse_expression(void);
+
+void parse_factor(void) {
+    if (current_token() == 1) {
+        size_t name_index = tokens[token_pos].name_index;
+        get_next_token("factor");
+        check_identifier(name_index, 0);
+    } else if (current_token() == 2) {
+        get_next_token("factor");
+    } else if (current_token() == 13) {
+        get_next_token("factor");
+        parse_expression();
+
+        if (current_token() != 14) {
+            display_error(10, token_pos);
+        }
+        get_next_token("factor");
+    } else {
+        display_error(11, token_pos);
+    }
+}
+
+void parse_term(void) {
+    parse_factor();
+
+    while (current_token() == 5 || current_token() == 6) {
+        get_next_token("term");
+        parse_factor();
+    }
+}
+
+void parse_expression(void) {
+    if (current_token() == 3 || current_token() == 4) {
+        get_next_token("expression");
+    }
+
+    parse_term();
+
+    while (current_token() == 3 || current_token() == 4) {
+        get_next_token("expression");
+        parse_term();
+    }
+}
+
+void parse_condition(void) {
+    parse_expression();
+
+    int t = current_token();
+    if (t < 7 || t > 12) {
+        display_error(9, token_pos);
+    }
+
+    get_next_token("condition");
+    parse_expression();
+}
+
+void parse_statement(void);
+
+// function to parse statements separated by semicolons
+void parse_statement_list(void) {
+    parse_statement();
+
+    while (current_token() == 16) {
+        get_next_token("statement-list");
+        parse_statement();
+    }
+}
+
+// function to parse statements
+void parse_statement(void) {
+    if (current_token() == 33) {
+        display_error(12, token_pos);
+    }
+
+    if (current_token() == 30) {
+        display_error(13, token_pos);
+    }
+
+    if (current_token() == 1) {
+        size_t name_index = tokens[token_pos].name_index;
+        get_next_token("statement");
+        check_identifier(name_index, 1);
+
+        if (current_token() != 18) {
+            display_error(5, token_pos);
+        }
+
+        get_next_token("statement");
+        parse_expression();
+        return;
+    }
+
+    if (current_token() == 20) {
+        get_next_token("statement");
+        parse_statement_list();
+        if (current_token() != 21) {
+            display_error(6, token_pos);
+        }
+
+        get_next_token("statement");
+        return;
+    }
+
+    if (current_token() == 22) {
+        get_next_token("statement");
+        parse_condition();
+
+        if (current_token() != 24) {
+            display_error(7, token_pos);
+        }
+
+        get_next_token("statement");
+        parse_statement_list();
+
+        if (current_token() == 36) {
+            get_next_token("statement");
+            parse_statement_list();
+        }
+
+        if (current_token() != 23) {
+            display_error(8, token_pos);
+        }
+
+        get_next_token("statement");
+        return;
+    }
+
+    if (current_token() == 25) {
+        get_next_token("statement");
+        parse_condition();
+
+        if (current_token() != 24) {
+            display_error(7, token_pos);
+        }
+
+        get_next_token("statement");
+        parse_statement_list();
+
+        if (current_token() != 26) {
+            display_error(8, token_pos);
+        }
+
+        get_next_token("statement");
+        return;
+    }
+
+    if (current_token() == 35) {
+        get_next_token("statement");
+
+        if (current_token() != 1) {
+            display_error(2, token_pos);
+        }
+
+        size_t name_index = tokens[token_pos].name_index;
+        get_next_token("statement");
+        check_identifier(name_index, 1);
+        return;
+    }
+
+    if (current_token() == 34) {
+        get_next_token("statement");
+        parse_expression();
+        return;
+    }
+
+}
+
+void parse_block(void) {
+    printf("\tenter level 0\n");
+
+    if (current_token() == 31) {
+        parse_const_declaration();
+    }
+    if (current_token() == 32) {
+        parse_var_declaration();
+    }
+
+    parse_statement();
+    mark_symbols();
+    printf("\tleave level 0\n");
+}
+
+void parse_program(void) {
+    parse_block();
+
+    if (current_token() != 17) {
+        display_error(1, token_pos);
+    }
+
+    get_next_token("program");
+
+    if (token_pos < token_count) {
+        display_error(1, token_pos);
+    }
+}
+
 // main driver function to start the process
 int main(void) {
     FILE *tokens_file = fopen("tokens.txt", "r");
@@ -373,5 +668,12 @@ int main(void) {
 
     fclose(tokens_file);
     fclose(names_file);
+
+    parse_program();
+
+    printf("\n");
+    print_symbol_table();
+    printf("Result:\n\nprogram accepted\n");
+
     return 0;
 }
