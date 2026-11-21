@@ -25,10 +25,18 @@ struct SymbolTableEntry {
     int mark;
 };
 
+struct Instruction {
+    int op;
+    int l;
+    int m;
+};
+
 static struct NameTableRow names[200];
 static struct Token tokens[5000];
 static struct SymbolTableEntry symbols[100];
+static struct Instruction code[200];
 static size_t name_count = 0;
+static size_t code_count = 0;
 static size_t token_count = 0;
 static size_t symbol_count = 0;
 static size_t token_pos = 0;
@@ -136,6 +144,24 @@ void get_next_token(void) {
     token_pos++;
 }
 
+int emit(int op, int l, int m) {
+    if (code_count >= 200) {
+        printf("Generated Code:\n\n");
+        printf("Symbol Table:\n\n");
+        printf("Result:\n\n");
+        printf("Error 20: generated code exceeds 200 instructions\n");
+        exit(1);
+    }
+    int index = (int) code_count;
+
+    code[code_count].op = op;
+    code[code_count].l = l;
+    code[code_count].m = m;
+    code_count++;
+
+    return index;
+}
+
 // function to print the symbol table
 void print_symbol_table(void) {
     printf("Symbol Table:\n\n");
@@ -147,8 +173,12 @@ void print_symbol_table(void) {
                 printf("%zu\tconstant\t%s\t%d\t%d\t-\t%d\n", 
                     i, names[symbols[i].name_index].name, symbols[i].value, symbols[i].level, symbols[i].mark
                 );
-            } else {
+            } else if (symbols[i].kind == 2) {
                 printf("%zu\tvariable\t%s\t-\t%d\t%d\t%d\n",
+                    i, names[symbols[i].name_index].name, symbols[i].level, symbols[i].address, symbols[i].mark
+                );
+            } else {
+                printf("%zu\tprocedure\t%s\t-\t%d\t%d\t%d\n",
                     i, names[symbols[i].name_index].name, symbols[i].level, symbols[i].address, symbols[i].mark
                 );
             }
@@ -175,7 +205,7 @@ void display_error(int error_code, size_t error_pos) {
             printf("the program must end with a period, and nothing may follow it\n");
             break;
         case 2:
-            printf("const, var, and read must be followed by an identifier\n");
+            printf("const, var, procedure, call, and read must be followed by an identifier\n");
             break;
         case 3:
             printf("a constant must be declared as name := number\n");
@@ -205,10 +235,10 @@ void display_error(int error_code, size_t error_pos) {
             printf("a factor must be an identifier, a number, or (\n");
             break;
         case 12:
-            printf("procedure declarations are not part of this grammar\n");
+            printf("a procedure name and a procedure block must each be followed by ;\n");
             break;
         case 13:
-            printf("call statements are not part of this grammar\n");
+            printf("call must name a procedure\n");
             break;
         case 14:
             printf("identifier already declared in this block\n");
@@ -222,6 +252,9 @@ void display_error(int error_code, size_t error_pos) {
         case 17:
             printf("symbol table is full\n");
             break;
+        case 19:
+            printf("a procedure name cannot be used in an expression\n");
+            break;
     }
 
     exit(1);
@@ -229,9 +262,9 @@ void display_error(int error_code, size_t error_pos) {
 
 // function to find an available symbol for an identifier
 int find_symbol(size_t name_index) {
-    for (size_t i=0; i<symbol_count; i++) {
-        if (symbols[i].name_index == name_index && symbols[i].mark == 0) {
-            return (int) i;
+    for (size_t i=symbol_count; i>0; i--) {
+        if (symbols[i-1].name_index == name_index && symbols[i-1].mark == 0) {
+            return (int) i-1;
         }
     }
 
@@ -239,9 +272,11 @@ int find_symbol(size_t name_index) {
 }
 
 // this function will check if a declaration is duplicate or the symbol table is full
-void check_declaration(size_t name_index) {
-    if (find_symbol(name_index) != -1) {
-        display_error(14, token_pos-1);
+void check_declaration(size_t name_index, int level) {
+    for (size_t i=0; i<symbol_count; i++) {
+        if (symbols[i].name_index == name_index && symbols[i].level == level && symbols[i].mark == 0) {
+            display_error(14, token_pos-1);
+        }
     }
     if (symbol_count >= 100) {
         display_error(17, token_pos-1);
@@ -249,11 +284,11 @@ void check_declaration(size_t name_index) {
 }
 
 // function to insert a variable into the symbol table
-void insert_variable(size_t name_index) {
+void insert_variable(size_t name_index, int level) {
     symbols[symbol_count].kind = 2;
     symbols[symbol_count].name_index = name_index;
     symbols[symbol_count].value = 0;
-    symbols[symbol_count].level = 0;
+    symbols[symbol_count].level = level;
     symbols[symbol_count].address = next_var_address;
     symbols[symbol_count].mark = 0;
 
@@ -262,11 +297,11 @@ void insert_variable(size_t name_index) {
 }
 
 // function to insert a declared constant into the symbol table
-void insert_constant(size_t name_index, int value) {
+void insert_constant(size_t name_index, int value, int level) {
     symbols[symbol_count].kind = 1;
     symbols[symbol_count].name_index = name_index;
     symbols[symbol_count].value = value;
-    symbols[symbol_count].level = 0;
+    symbols[symbol_count].level = level;
     symbols[symbol_count].address = 0;
     symbols[symbol_count].mark = 0;
 
@@ -283,16 +318,22 @@ void check_identifier(size_t name_index, int variable) {
     if (variable == 1 && symbols[entry].kind != 2) {
         display_error(16, token_pos-1);
     }
-}
 
-// function to mark all symbol entries when the program block ends
-void mark_symbols(void) {
-    for (size_t i=0; i<symbol_count; i++) {
-        symbols[i].mark = 1;
+    if (variable == 0 && symbols[entry].kind == 3) {
+        display_error(19, token_pos-1);
     }
 }
 
-void parse_const_declaration(void) {
+// function to mark all symbol entries when the program block ends
+void mark_symbols(int level, size_t first) {
+    for (size_t i=first; i<symbol_count; i++) {
+        if (symbols[i].level == level && symbols[i].mark == 0) {
+            symbols[i].mark = 1;
+        }
+    }
+}
+
+void parse_const_declaration(int level) {
     get_next_token();
 
     while (1) {
@@ -302,7 +343,7 @@ void parse_const_declaration(void) {
 
         size_t name_index = tokens[token_pos].name_index;
         get_next_token();
-        check_declaration(name_index);
+        check_declaration(name_index, level);
 
         if (current_token() != 19) {
             display_error(3, token_pos);
@@ -315,7 +356,7 @@ void parse_const_declaration(void) {
 
         int value = atoi(tokens[token_pos].number);
         get_next_token();
-        insert_constant(name_index, value);
+        insert_constant(name_index, value, level);
 
         if (current_token() != 15) {
             break;
@@ -331,7 +372,7 @@ void parse_const_declaration(void) {
 }
 
 // function to parse variable declaration
-void parse_var_declaration(void) {
+void parse_var_declaration(int level) {
     get_next_token();
 
     while (1) {
@@ -341,8 +382,8 @@ void parse_var_declaration(void) {
 
         size_t name_index = tokens[token_pos].name_index;
         get_next_token();
-        check_declaration(name_index);
-        insert_variable(name_index);
+        check_declaration(name_index, level);
+        insert_variable(name_index, level);
 
         if (current_token() != 15) {
             break;
@@ -357,18 +398,27 @@ void parse_var_declaration(void) {
     get_next_token();
 }
 
-void parse_expression(void);
+void parse_expression(int level);
 
-void parse_factor(void) {
+void parse_factor(int level) {
     if (current_token() == 1) {
         size_t name_index = tokens[token_pos].name_index;
         get_next_token();
         check_identifier(name_index, 0);
+
+        int entry = find_symbol(name_index);
+        if (symbols[entry].kind == 1) {
+            emit(1, 0, symbols[entry].value);
+        } else if (symbols[entry].kind == 2) {
+            emit(3, level-symbols[entry].level, symbols[entry].address);
+        }
     } else if (current_token() == 2) {
+        int value = atoi(tokens[token_pos].number);
+        emit(1, 0, value);
         get_next_token();
     } else if (current_token() == 13) {
         get_next_token();
-        parse_expression();
+        parse_expression(level);
 
         if (current_token() != 14) {
             display_error(10, token_pos);
@@ -379,30 +429,37 @@ void parse_factor(void) {
     }
 }
 
-void parse_term(void) {
-    parse_factor();
+void parse_term(int level) {
+    parse_factor(level);
 
     while (current_token() == 5 || current_token() == 6) {
+        int operator = current_token();
         get_next_token();
-        parse_factor();
+        parse_factor(level);
+
+        if (operator == 5) {
+            emit(2, 0, 3);
+        } else {
+            emit(2, 0, 4);
+        }
     }
 }
 
-void parse_expression(void) {
+void parse_expression(int level) {
     if (current_token() == 3 || current_token() == 4) {
         get_next_token();
     }
 
-    parse_term();
+    parse_term(level);
 
     while (current_token() == 3 || current_token() == 4) {
         get_next_token();
-        parse_term();
+        parse_term(level);
     }
 }
 
-void parse_condition(void) {
-    parse_expression();
+void parse_condition(int level) {
+    parse_expression(level);
 
     int t = current_token();
     if (t < 7 || t > 12) {
@@ -410,31 +467,42 @@ void parse_condition(void) {
     }
 
     get_next_token();
-    parse_expression();
+    parse_expression(level);
 }
 
-void parse_statement(void);
+void parse_statement(int level);
 
 // function to parse statements separated by semicolons
-void parse_statement_list(void) {
-    parse_statement();
+void parse_statement_list(int level) {
+    parse_statement(level);
 
     while (current_token() == 16) {
         get_next_token();
-        parse_statement();
+        parse_statement(level);
     }
 }
 
 // function to parse statements
-void parse_statement(void) {
-    if (current_token() == 33) {
-        display_error(12, token_pos);
-    }
-
+void parse_statement(int level) {
     if (current_token() == 30) {
-        display_error(13, token_pos);
-    }
+        get_next_token();
+        if (current_token() != 1) {
+            display_error(2, token_pos);
+        }
 
+        size_t name_index = tokens[token_pos].name_index;
+        get_next_token();
+        int symbol_entry = find_symbol(name_index);
+
+        if (symbol_entry == -1) {
+            display_error(15, token_pos-1);
+        }
+
+        if (symbols[symbol_entry].kind != 3) {
+            display_error(13, token_pos-1);
+        }
+        return;
+    }
     if (current_token() == 1) {
         size_t name_index = tokens[token_pos].name_index;
         get_next_token();
@@ -445,13 +513,13 @@ void parse_statement(void) {
         }
 
         get_next_token();
-        parse_expression();
+        parse_expression(level);
         return;
     }
 
     if (current_token() == 20) {
         get_next_token();
-        parse_statement_list();
+        parse_statement_list(level);
         if (current_token() != 21) {
             display_error(6, token_pos);
         }
@@ -462,18 +530,18 @@ void parse_statement(void) {
 
     if (current_token() == 22) {
         get_next_token();
-        parse_condition();
+        parse_condition(level);
 
         if (current_token() != 24) {
             display_error(7, token_pos);
         }
 
         get_next_token();
-        parse_statement_list();
+        parse_statement_list(level);
 
         if (current_token() == 36) {
             get_next_token();
-            parse_statement_list();
+            parse_statement_list(level);
         }
 
         if (current_token() != 23) {
@@ -486,14 +554,14 @@ void parse_statement(void) {
 
     if (current_token() == 25) {
         get_next_token();
-        parse_condition();
+        parse_condition(level);
 
         if (current_token() != 24) {
             display_error(7, token_pos);
         }
 
         get_next_token();
-        parse_statement_list();
+        parse_statement_list(level);
 
         if (current_token() != 26) {
             display_error(8, token_pos);
@@ -518,26 +586,59 @@ void parse_statement(void) {
 
     if (current_token() == 34) {
         get_next_token();
-        parse_expression();
+        parse_expression(level);
         return;
     }
 
 }
 
-void parse_block(void) {
+void parse_block(int level) {
+    size_t first = symbol_count;
+    next_var_address = 3;
     if (current_token() == 31) {
-        parse_const_declaration();
+        parse_const_declaration(level);
     }
     if (current_token() == 32) {
-        parse_var_declaration();
+        parse_var_declaration(level);
     }
 
-    parse_statement();
-    mark_symbols();
+    while (current_token() == 33) {
+        get_next_token();
+        if (current_token() != 1) {
+            display_error(2, token_pos);
+        }
+
+        size_t name_index = tokens[token_pos].name_index;
+        get_next_token();
+        check_declaration(name_index, level);
+        symbols[symbol_count].kind = 3;
+        symbols[symbol_count].name_index = name_index;
+        symbols[symbol_count].value = 0;
+        symbols[symbol_count].level = level;
+        symbols[symbol_count].address = 0;
+        symbols[symbol_count].mark = 0;
+
+        symbol_count++;
+
+        if (current_token() != 16) {
+            display_error(12, token_pos);
+        }
+        get_next_token();
+
+        parse_block(level + 1);
+        if (current_token() != 16) {
+            display_error(12, token_pos);
+        }
+
+        get_next_token();
+    }
+
+    parse_statement(level);
+    mark_symbols(level, first);
 }
 
 void parse_program(void) {
-    parse_block();
+    parse_block(0);
 
     if (current_token() != 17) {
         display_error(1, token_pos);
