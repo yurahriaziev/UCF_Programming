@@ -1,3 +1,40 @@
+/*
+Homework:
+parsercodegen - HW4 PL/0 compiler: parser, symbol table, and code generator
+
+Author(s): Yurii Hriaziev
+
+Language: C only
+
+To Compile:
+  gcc -Wall -Wextra -std=c11 -O2 parsercodegen.c -o parsercodegen
+
+To Execute (on Eustis):
+  ./lex <input_file> && ./parsercodegen && ./vm elf.txt
+
+where:
+  <input_file> is the path to a text file holding a PL/0 source program;
+  ./lex writes tokens.txt and nametable.txt, ./parsercodegen reads them
+  from the current directory, takes no arguments, and writes elf.txt, and
+  ./vm runs elf.txt
+
+Notes:
+  - Implements the recursive-descent compiler described in the homework
+    instructions: procedures, lexical levels, and PM/0 code generation.
+  - Prints three sections to standard output: Generated Code, Symbol
+    Table and Result.
+  - Writes elf.txt, one instruction per line as OP L M, only when the
+    whole program is accepted, and then exits with status 0.
+  - Stops at the first error, reports it, and exits with status 1.
+  - Tested on Eustis.
+
+Class: COP 3402 - Systems Software
+
+Instructor: Jie Lin, Ph.D.
+
+Due Date: See Webcourses
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -446,15 +483,32 @@ void parse_term(int level) {
 }
 
 void parse_expression(int level) {
+    int sign = 0;
     if (current_token() == 3 || current_token() == 4) {
+        sign = current_token();
+        if (sign == 4) {
+            emit(1, 0, 0);
+        }
+
         get_next_token();
     }
 
     parse_term(level);
 
+    if (sign == 4) {
+        emit(2, 0, 2);
+    }
+
     while (current_token() == 3 || current_token() == 4) {
+        int operator = current_token();
         get_next_token();
         parse_term(level);
+
+        if (operator == 3) {
+            emit(2, 0, 1);
+        } else {
+            emit(2, 0, 2);
+        }
     }
 }
 
@@ -468,6 +522,7 @@ void parse_condition(int level) {
 
     get_next_token();
     parse_expression(level);
+    emit(2, 0, t-2);
 }
 
 void parse_statement(int level);
@@ -501,6 +556,7 @@ void parse_statement(int level) {
         if (symbols[symbol_entry].kind != 3) {
             display_error(13, token_pos-1);
         }
+        emit(5, level-symbols[symbol_entry].level, symbols[symbol_entry].address);
         return;
     }
     if (current_token() == 1) {
@@ -514,6 +570,9 @@ void parse_statement(int level) {
 
         get_next_token();
         parse_expression(level);
+        
+        int entry = find_symbol(name_index);
+        emit(4, level - symbols[entry].level, symbols[entry].address);
         return;
     }
 
@@ -536,12 +595,18 @@ void parse_statement(int level) {
             display_error(7, token_pos);
         }
 
+        int jpc_index = emit(8, 0, 0);
         get_next_token();
         parse_statement_list(level);
 
         if (current_token() == 36) {
+            int jmp_index = emit(7, 0, 0);
+            code[jpc_index].m = 200+3 * (int) code_count;
             get_next_token();
             parse_statement_list(level);
+            code[jmp_index].m = 200+3 * (int) code_count;
+        } else {
+            code[jpc_index].m = 200+3 * (int) code_count;
         }
 
         if (current_token() != 23) {
@@ -554,12 +619,14 @@ void parse_statement(int level) {
 
     if (current_token() == 25) {
         get_next_token();
+        int loop_start = 200+3 * (int) code_count;
         parse_condition(level);
 
         if (current_token() != 24) {
             display_error(7, token_pos);
         }
 
+        int jpc_index = emit(8, 0, 0);
         get_next_token();
         parse_statement_list(level);
 
@@ -568,6 +635,8 @@ void parse_statement(int level) {
         }
 
         get_next_token();
+        emit(7, 0, loop_start);
+        code[jpc_index].m = 200+3 * (int) code_count;
         return;
     }
 
@@ -581,12 +650,17 @@ void parse_statement(int level) {
         size_t name_index = tokens[token_pos].name_index;
         get_next_token();
         check_identifier(name_index, 1);
+
+        int entry = find_symbol(name_index);
+        emit(9, 0, 2);
+        emit(4, level - symbols[entry].level, symbols[entry].address);
         return;
     }
 
     if (current_token() == 34) {
         get_next_token();
         parse_expression(level);
+        emit(9, 0, 1);
         return;
     }
 
@@ -595,6 +669,7 @@ void parse_statement(int level) {
 void parse_block(int level) {
     size_t first = symbol_count;
     next_var_address = 3;
+    int jmp_index = emit(7, 0, 0);
     if (current_token() == 31) {
         parse_const_declaration(level);
     }
@@ -602,6 +677,7 @@ void parse_block(int level) {
         parse_var_declaration(level);
     }
 
+    int block_space = next_var_address;
     while (current_token() == 33) {
         get_next_token();
         if (current_token() != 1) {
@@ -625,6 +701,7 @@ void parse_block(int level) {
         }
         get_next_token();
 
+        symbols[symbol_count-1].address = 200+3 * (int) code_count;
         parse_block(level + 1);
         if (current_token() != 16) {
             display_error(12, token_pos);
@@ -633,7 +710,12 @@ void parse_block(int level) {
         get_next_token();
     }
 
+    code[jmp_index].m = 200+3 * (int) code_count;
+    emit(6, 0, block_space);
     parse_statement(level);
+    if (level > 0) {
+        emit(2, 0, 0);
+    }
     mark_symbols(level, first);
 }
 
@@ -649,6 +731,7 @@ void parse_program(void) {
     if (token_pos < token_count) {
         display_error(1, token_pos);
     }
+    emit(9, 0, 3);
 }
 
 // main driver function to start the process
@@ -693,10 +776,36 @@ int main(void) {
     fclose(names_file);
 
     parse_program();
+    const char *op_names[] = {"", "LIT", "OPR", "LOD", "STO", "CAL", "INC", "JMP", "JPC", "SYS"};
+    const char *opr_names[] = {"RTN", "ADD", "SUB", "MUL", "DIV", "EQL", "NEQ", "LSS", "LEQ", "GTR", "GEQ"};
+
+    printf("Generated Code:\n\n");
+    printf("index\taddress\top\tL\tM\n");
+    for (size_t i=0; i<code_count; i++) {
+        const char *name;
+        if (code[i].op == 2) {
+            name = opr_names[code[i].m];
+        } else {
+            name = op_names[code[i].op];
+        }
+
+        printf("%zu\t%zu\t%s\t%d\t%d\n", i, 200+3*i, name, code[i].l, code[i].m);
+    }
 
     printf("\n");
+
     print_symbol_table();
     printf("Result:\n\nprogram accepted\n");
+    
+    FILE *elf = fopen("elf.txt", "w");
+    if (elf == NULL) {
+        return 1;
+    }
 
+    for (size_t i=0; i<code_count; i++) {
+        fprintf(elf, "%d %d %d\n", code[i].op, code[i].l, code[i].m);
+    }
+
+    fclose(elf);
     return 0;
 }
